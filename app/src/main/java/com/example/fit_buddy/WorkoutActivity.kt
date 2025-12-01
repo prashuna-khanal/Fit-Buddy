@@ -284,6 +284,7 @@ fun BottomNavigationBar() {
             .background(Color.White),
         contentAlignment = Alignment.Center
     ) {
+        //
         Box(
             modifier = Modifier
                 .size(70.dp)
