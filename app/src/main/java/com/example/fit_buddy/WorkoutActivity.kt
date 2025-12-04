@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -52,6 +53,7 @@ fun WorkoutScreen() {
     var selectedIndex by remember { mutableStateOf(0) }
 
     Scaffold(
+                //Navigation
         bottomBar = {
 
             Box(
@@ -162,11 +164,13 @@ fun WorkoutHomeScreen() {
             .verticalScroll(rememberScrollState())
     ) {
         HeaderSection()
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(17.dp))
         AICoachCard()
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(17.dp))
         WeeklyActivityCard()
         Spacer(Modifier.height(18.dp))
+        WorkoutListSection()
+
 
     }
 }
@@ -177,7 +181,7 @@ fun HeaderSection() {
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
-            .height(230.dp)
+            .height(240.dp)
     ) {
         Row(
             modifier = Modifier
@@ -187,11 +191,11 @@ fun HeaderSection() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text("Good Evening", color = textMuted, fontSize = 16.sp)
+                Text("Good Evening", color = textMuted, fontSize = 18.sp,fontWeight = FontWeight.Medium)
                 Spacer(Modifier.height(10.dp))
-                Text("Sam", color = textPrimary, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                Text("Sam", color = textPrimary, fontSize = 29.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(10.dp))
-                Text("Ready to crush your goals today?", color = textSecondary, fontSize = 14.sp)
+                Text("Ready to crush your goals today?", color = textSecondary, fontSize = 16.sp,fontWeight = FontWeight.Normal)
             }
 
             Box(
@@ -208,6 +212,7 @@ fun HeaderSection() {
                 )
             }
         }
+        Spacer(Modifier.height(8.dp))
 
         Row(
             modifier = Modifier
@@ -252,7 +257,7 @@ fun StatCard(title: String, value: String, icon: Int, gradient: Brush) {
 
         Spacer(Modifier.height(5.dp))
         Text(value, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = textPrimary)
-        Text(title, fontSize = 13.sp, color = textSecondary)
+        Text(title, fontSize = 14.sp, color = textSecondary)
     }
 }
 
@@ -289,15 +294,17 @@ fun AICoachCard() {
                     .clip(RoundedCornerShape(10.dp))
                     .background(aiBadgeBackground)
                     .padding(horizontal = 10.dp, vertical = 4.dp),
+
                 color = aiBadgeText
             )
         }
 
         Spacer(Modifier.height(15.dp))
         Text("Start AI Coach", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = textPrimary)
+        Spacer(Modifier.height(10.dp))
         Text(
             "Get real-time form feedback and rep counting with advanced AI tracking",
-            color = textSecondary, fontSize = 14.sp
+            color = textSecondary, fontSize = 15.sp
         )
 
         Spacer(Modifier.height(20.dp))
@@ -306,7 +313,7 @@ fun AICoachCard() {
             colors = ButtonDefaults.buttonColors(containerColor = textPrimary),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text("Begin Training →", color = Color.White)
+            Text("Begin Training →", color = Color.White,fontSize = 16.sp)
         }
     }
 }
@@ -400,6 +407,157 @@ fun NavItemView(item: NavItem, isSelected: Boolean, onClick: () -> Unit) {
         )
     }
 }
+    @Composable
+    fun WorkoutCard(
+        title: String,
+        level: String,
+        duration: String,
+        calories: String,
+        image: Int
+    ) {
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(230.dp)
+                .clip(RoundedCornerShape(26.dp))
+                .background(Color.White)
+        ) {
+
+            Column {
+
+                // IMAGE
+                Image(
+                    painter = painterResource(id = image),
+                    contentDescription = title,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(140.dp)
+                        .clip(RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp)),
+                    contentScale = ContentScale.Crop
+                )
+
+                Spacer(Modifier.height(12.dp))
+
+                Text(
+                    title,
+                    modifier = Modifier.padding(start = 16.dp),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textPrimary
+                )
+
+                Spacer(Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.iconamoon_clock),
+                            contentDescription = null,
+                            tint = lavender500,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(duration, color = textSecondary, fontSize = 16.sp)
+                    }
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.icon_park_solid_fire),
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(calories, color = textSecondary, fontSize = 16.sp)
+                    }
+                }
+            }
+
+            Text(
+                level,
+                color = Color.White,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier
+                    .padding(12.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Color.Black.copy(alpha = 0.4f))
+                    .padding(horizontal = 10.dp, vertical = 4.dp)
+            )
+
+            // AI BADGE
+            Box(
+                modifier = Modifier
+                    .padding(top = 12.dp, end = 12.dp)
+                    .align(Alignment.TopEnd)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(lavender500)
+                    .padding(horizontal = 10.dp, vertical = 4.dp)
+            ) {
+                Text("AI", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+            }
+        }
+    }
+
+
+    @Composable
+    fun WorkoutListSection() {
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+        ) {
+
+            // Section Title Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "Recommended",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textPrimary
+                )
+
+                Text(
+                    "See All",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = lavender600
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            // Workout Cards
+            WorkoutCard(
+                title = "Full Body HIT",
+                level = "Intermediate",
+                duration = "25 min",
+                calories = "320 cal",
+                image = R.drawable.workout_1
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            WorkoutCard(
+                title = "Core Strength",
+                level = "Beginner",
+                duration = "18 min",
+                calories = "210 cal",
+                image = R.drawable.workout_2
+            )
+        }
+    }
+
 
 
 @Preview
