@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Fit_Buddy</string>
     <string name="title_activity_workout">WorkoutActivity</string>
+    <string name="title_activity_exercise">ExerciseActivity</string>
 </resources>
