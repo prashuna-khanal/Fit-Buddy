@@ -85,7 +85,7 @@ fun RegistrationBody() {
             .fillMaxSize()
             .background(gradientBg)
             .padding(20.dp)
-            .border(3.dp, Color.Black, RoundedCornerShape(30.dp)) // phone border
+            .border(3.dp, Color.Black, RoundedCornerShape(30.dp))
             .padding(20.dp)
     ) {
 
