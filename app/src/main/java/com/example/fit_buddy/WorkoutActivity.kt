@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+//import androidx.core.app.ComponentActivity
 import com.example.fit_buddy.ui.theme.*
 
 class WorkoutActivity : ComponentActivity() {
@@ -119,8 +121,9 @@ fun WorkoutScreen() {
             when (selectedIndex) {
                 0 -> WorkoutHomeScreen()
 //                1 -> FeedScreen()
-//                2 -> AchievemntScreen()
-//                3 -> ProfileScreen()
+//                2 -> AIScreen()
+                3 -> AchievementScreen()
+//                4 -> ProfileScreen()
             }
         }
     }
