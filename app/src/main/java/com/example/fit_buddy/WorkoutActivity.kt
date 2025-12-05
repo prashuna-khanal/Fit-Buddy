@@ -145,7 +145,7 @@ fun WorkoutScreen() {
         ) {
             when (selectedIndex) {
                 0 -> WorkoutHomeScreen()
-//                1 -> FeedScreen()
+                1 -> FeedSection()
 //                2 -> AIScreen()
 //                3 -> AchievementScreen()
 //                4 -> ProfileScreen()

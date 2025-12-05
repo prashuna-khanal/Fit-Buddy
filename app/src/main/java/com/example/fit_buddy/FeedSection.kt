@@ -65,7 +65,7 @@ fun FeedSection(myUsername: String ="BABITA") {
                 navigationIcon = {
                     IconButton(onClick = {}) {
                         Icon(
-                            painter = painterResource(R.drawable.backbutton),
+                            painter = painterResource(R.drawable.outline_arrow_back_ios_24),
                             contentDescription = null
                         )
                     }
@@ -76,7 +76,7 @@ fun FeedSection(myUsername: String ="BABITA") {
                 actions = {
                     IconButton(onClick = {}) {
                         Icon(
-                            painter = painterResource(R.drawable.friendrequest),
+                            painter = painterResource(R.drawable.outline_contacts_product_24),
                             contentDescription = null
                         )
                     }
