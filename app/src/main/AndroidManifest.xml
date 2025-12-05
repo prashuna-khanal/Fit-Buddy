@@ -23,6 +23,11 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".ExerciseActivity"
+            android:exported="false"
+            android:label="@string/title_activity_exercise"
+            android:theme="@style/Theme.Fit_Buddy" />
+        <activity
             android:name=".WorkoutActivity"
             android:exported="true" >
             <intent-filter>
