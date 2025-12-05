@@ -122,6 +122,8 @@ fun WorkoutScreen() {
                 0 -> WorkoutHomeScreen()
 //                1 -> FeedScreen()
 //                2 -> AIScreen()
+//                3 -> AchievementScreen()
+                4 -> ProfileScreen()
                 3 -> AchievementScreen()
 //                4 -> ProfileScreen()
             }
