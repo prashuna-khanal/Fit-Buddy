@@ -197,7 +197,7 @@ fun FeedCard(post: FeedPost) {
             Text("${post.likes} Likes", color = textPrimary)
             Spacer(modifier = Modifier.width(12.dp))
             Icon(
-                painter = painterResource(R.drawable.chat_1947247),
+                painter = painterResource(R.drawable.talk_10298102),
                 contentDescription = null,
                 tint = Color.Red,
                 modifier = Modifier.size(24.dp).padding(horizontal = 3.dp)
