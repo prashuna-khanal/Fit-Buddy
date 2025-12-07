@@ -17,20 +17,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.fit_buddy.ui.theme.Black
+//import com.example.fit_buddy.ui.theme.Black
 import com.example.fit_buddy.ui.theme.backgroundLightLavender
 import com.example.fit_buddy.ui.theme.textMuted
 import com.example.fit_buddy.ui.theme.textPrimary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FeedSection(myUsername: String ="Me") {
+fun FeedSection(myUsername: String ="BABITA") {
     val posts = remember { samplePosts() }
 //    button color of feed all, friends and mypost
     val buttonLavender = Color(0xFFD9C8F9)
@@ -43,7 +44,7 @@ fun FeedSection(myUsername: String ="Me") {
 //        filyer and only show post belongs to the user
         val myPosts = posts.filter { it.username == myUsername }
 
-        MyPostsScreen(myPosts = myPosts,
+        MyPostsScreen(posts = myPosts,
             onBack = {
                 showMyPostsScreen=false
             })
@@ -64,7 +65,7 @@ fun FeedSection(myUsername: String ="Me") {
                 navigationIcon = {
                     IconButton(onClick = {}) {
                         Icon(
-                            painter = painterResource(R.drawable.backbutton),
+                            painter = painterResource(R.drawable.outline_arrow_back_ios_24),
                             contentDescription = null
                         )
                     }
@@ -75,7 +76,7 @@ fun FeedSection(myUsername: String ="Me") {
                 actions = {
                     IconButton(onClick = {}) {
                         Icon(
-                            painter = painterResource(R.drawable.friendrequest),
+                            painter = painterResource(R.drawable.outline_contacts_product_24),
                             contentDescription = null
                         )
                     }
@@ -196,7 +197,7 @@ fun FeedCard(post: FeedPost) {
             Text("${post.likes} Likes", color = textPrimary)
             Spacer(modifier = Modifier.width(12.dp))
             Icon(
-                painter = painterResource(R.drawable.chat_1947247),
+                painter = painterResource(R.drawable.talk_10298102),
                 contentDescription = null,
                 tint = Color.Red,
                 modifier = Modifier.size(24.dp).padding(horizontal = 3.dp)
