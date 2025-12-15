@@ -1,5 +1,6 @@
-package com.example.fit_buddy
+package com.example.fit_buddy.view
 
+import android.R
 import android.app.DatePickerDialog
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -31,7 +32,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -53,7 +53,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
-import com.example.fit_buddy.ui.theme.Fit_BuddyTheme
 import java.util.Calendar
 
 class RegistrationActivity : ComponentActivity() {
@@ -218,7 +217,7 @@ fun RegistrationBody() {
                         },
                     trailingIcon = {
                         Icon(
-                            painter = painterResource(android.R.drawable.ic_menu_my_calendar),
+                            painter = painterResource(R.drawable.ic_menu_my_calendar),
                             contentDescription = null
                         )
                     },

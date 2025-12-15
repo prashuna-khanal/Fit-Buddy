@@ -1,4 +1,4 @@
-package com.example.fit_buddy
+package com.example.fit_buddy.view
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -29,6 +29,7 @@ import com.example.fit_buddy.ui.theme.textPrimary
 import com.example.fit_buddy.ui.theme.textMuted
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.lazy.items
+import com.example.fit_buddy.R
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable

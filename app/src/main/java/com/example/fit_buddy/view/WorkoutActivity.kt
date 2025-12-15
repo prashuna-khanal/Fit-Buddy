@@ -1,10 +1,13 @@
-package com.example.fit_buddy
+package com.example.fit_buddy.view
 
+import android.Manifest
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -29,9 +32,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.example.fit_buddy.R
 //import androidx.core.app.ComponentActivity
 import com.example.fit_buddy.ui.theme.*
-
+import com.example.fitbuddy.repository.PoseRepo
+import com.example.fitbuddy.view.AIScreen
+import com.example.fitbuddy.viewmodel.PoseViewModel
 class WorkoutActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,7 +51,31 @@ class WorkoutActivity : ComponentActivity() {
 data class NavItem(val icon: Int, val label: String)
 
 @Composable
+
 fun WorkoutScreen() {
+    val context = LocalContext.current
+
+    var selectedIndex by remember { mutableStateOf(0) }
+    var cameraPermissionGranted by remember { mutableStateOf(false) }
+
+    // Camera permission launcher
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        cameraPermissionGranted = granted
+    }
+
+    // Launch permission check whenever screen appears or state changes
+    LaunchedEffect(cameraPermissionGranted) {
+        if (!cameraPermissionGranted) {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    // Initialize ViewModel only after permission granted
+    val viewModel: PoseViewModel? = remember(cameraPermissionGranted) {
+        if (cameraPermissionGranted) PoseViewModel(PoseRepo(context)) else null
+    }
 
     val navItems = listOf(
         NavItem(R.drawable.workout, "Workouts"),
@@ -54,8 +84,6 @@ fun WorkoutScreen() {
         NavItem(R.drawable.icons8_man_winner_50, "Achievement"),
         NavItem(R.drawable.profile, "Profile"),
     )
-
-    var selectedIndex by remember { mutableStateOf(0) }
 
     Scaffold(
         bottomBar = {
@@ -66,7 +94,6 @@ fun WorkoutScreen() {
                     .navigationBarsPadding(),
                 contentAlignment = Alignment.Center
             ) {
-
                 // MAIN NAVIGATION BAR
                 Row(
                     modifier = Modifier
@@ -111,17 +138,25 @@ fun WorkoutScreen() {
             }
         }
     ) { padding ->
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White) // PURE WHITE BACKGROUND
+                .background(Color.White)
                 .padding(padding)
         ) {
             when (selectedIndex) {
                 0 -> WorkoutHomeScreen()
                 1 -> FeedSection()
-//                2 -> AIScreen()
+                2 -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        if (cameraPermissionGranted && viewModel != null) {
+                            AIScreen(viewModel)
+
+                        } else {
+                            Text("Camera permission required", color = Color.Gray)
+                        }
+                    }
+                }
                 3 -> AchievementScreen()
                 4 -> ProfileScreen()
             }
