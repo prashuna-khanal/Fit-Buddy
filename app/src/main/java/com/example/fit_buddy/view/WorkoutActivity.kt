@@ -32,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.example.fit_buddy.AchievementScreen
 import com.example.fit_buddy.R
 //import androidx.core.app.ComponentActivity
 import com.example.fit_buddy.ui.theme.*
