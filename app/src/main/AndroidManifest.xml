@@ -2,6 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" >
 
+    <!-- CAMERA permission -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -11,31 +17,29 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Fit_Buddy" >
-        <activity
-            android:name=".RegistrationActivity"
-            android:exported="true"
-            android:label="@string/title_activity_registration"
-            android:theme="@style/Theme.Fit_Buddy" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+        <!-- Only one LAUNCHER activity -->
         <activity
-            android:name=".ExerciseActivity"
-            android:exported="false"
-            android:label="@string/title_activity_exercise"
-            android:theme="@style/Theme.Fit_Buddy" />
-        <activity
-            android:name=".WorkoutActivity"
+            android:name=".view.WorkoutActivity"
             android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".view.RegistrationActivity"
+            android:exported="true"
+            android:label="@string/title_activity_registration"
+            android:theme="@style/Theme.Fit_Buddy" />
+
+        <activity
+            android:name=".view.ExerciseActivity"
+            android:exported="false"
+            android:label="@string/title_activity_exercise"
+            android:theme="@style/Theme.Fit_Buddy" />
+
     </application>
 
 </manifest>
