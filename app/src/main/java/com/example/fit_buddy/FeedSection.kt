@@ -40,18 +40,24 @@ fun FeedSection(myUsername: String ="BABITA") {
 //    tracking which button is being displayed
     var showMyPostsScreen by remember { mutableStateOf(false) }
 //    ifshowMyPostScreen is true, show that instead of freidns posts
+// ... inside your FeedSection composable
+
+//    ifshowMyPostScreen is true, show that instead of freidns posts
     if (showMyPostsScreen) {
 //        filyer and only show post belongs to the user
         val myPosts = posts.filter { it.username == myUsername }
 
-        MyPostsScreen(posts = myPosts,
+        //  Pass the 'myPosts' list to the MyPostsScreen composable
+        MyPostsScreen(
+            posts = myPosts, // Add this line
             onBack = {
-                showMyPostsScreen=false
-            })
-
-
-
+                showMyPostsScreen = false
+            }
+        )
     }
+
+
+
 
     Scaffold(
         topBar = {

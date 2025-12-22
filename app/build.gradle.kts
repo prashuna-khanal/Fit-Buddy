@@ -42,6 +42,10 @@ android {
 }
 
 dependencies {
+//     for gallery
+    implementation("io.coil-kt:coil-compose:2.5.0")
+//    for data storing cloudinary
+    implementation("com.cloudinary:cloudinary-android:2.1.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -57,4 +61,5 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
 }
