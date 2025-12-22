@@ -2,6 +2,7 @@
 <project version="4">
   <component name="deploymentTargetSelector">
     <selectionStates>
+<<<<<<< HEAD
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
@@ -25,6 +26,11 @@
       <SelectionState runConfigName="WorkoutActivity (3)">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
+=======
+      <SelectionState runConfigName="WorkoutActivity">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+>>>>>>> 6d716a8905dcbfdaf10e145e44616fa639a838ab
     </selectionStates>
   </component>
 </project>
