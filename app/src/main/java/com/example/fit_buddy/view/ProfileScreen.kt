@@ -36,8 +36,8 @@ import com.example.fit_buddy.ui.theme.backgroundLightLavender
 fun ProfileScreen() {
     Column(
         modifier = Modifier
-            .fillMaxSize()                      // FULL SCREEN like others
-            .background(backgroundLightLavender) // SAME BG
+            .fillMaxSize()
+            .background(backgroundLightLavender)
             .verticalScroll(rememberScrollState())
             .padding(20.dp)
     ) {
@@ -166,7 +166,7 @@ fun SettingItemLogout(label: String) {
     ) {
 
         Icon(
-            painter = painterResource(R.drawable.baseline_logout_24), // your logout icon
+            painter = painterResource(R.drawable.baseline_logout_24),
             contentDescription = null,
             tint = Color.Black, // red color
             modifier = Modifier.size(26.dp)
@@ -178,7 +178,7 @@ fun SettingItemLogout(label: String) {
             text = label,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFFD00000) // red
+            color = Color(0xFFD00000)
         )
     }
 }
