@@ -11,29 +11,41 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Text
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.example.fit_buddy.model.PoseModel
+import com.example.fit_buddy.ui.theme.*
 import com.example.fitbuddy.viewmodel.PoseViewModel
 import java.util.concurrent.Executors
+import kotlinx.coroutines.delay
 
 @Composable
 fun AIScreen(viewModel: PoseViewModel) {
     val context = LocalContext.current
-    val activity = context as? ComponentActivity
+    var poseResult by remember { mutableStateOf<PoseModel?>(null) }
 
-    // Initialize TTS
+    // Initialize TTS (simpler approach)
     val tts = remember {
-        TextToSpeech(context) {}
+        TextToSpeech(context, null)
     }
 
-    // Clean up TTS when composable leaves
+    // Set TTS properties
+    LaunchedEffect(tts) {
+        delay(300) // Give TTS time to initialize
+        tts.setSpeechRate(0.85f)
+    }
+
+    // Clean up TTS
     DisposableEffect(Unit) {
         onDispose {
             tts.stop()
@@ -41,105 +53,276 @@ fun AIScreen(viewModel: PoseViewModel) {
         }
     }
 
-    var poseResult by remember { mutableStateOf<PoseModel?>(null) }
-    var lastSpokenFeedback by remember { mutableStateOf("") }
+    // Camera permission state
+    var hasCameraPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.CAMERA
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        )
+    }
 
-    // Camera permission
-    var cameraPermissionGranted by remember { mutableStateOf(false) }
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
-        cameraPermissionGranted = granted
+        hasCameraPermission = granted
     }
 
+    // Request permission
     LaunchedEffect(Unit) {
-        if (!cameraPermissionGranted) {
+        if (!hasCameraPermission) {
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }
 
-    if (cameraPermissionGranted) {
-        val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
+    // Smart voice feedback with less frequent speaking
+    var lastSpokenFeedback by remember { mutableStateOf("") }
 
-        Column(modifier = Modifier.fillMaxSize()) {
-            AndroidView(factory = { ctx ->
-                val previewView = PreviewView(ctx)
-                val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
+    LaunchedEffect(poseResult) {
+        poseResult?.let { result ->
+            val feedback = result.feedback
 
-                cameraProviderFuture.addListener({
-                    val cameraProvider = cameraProviderFuture.get()
+            // Only speak for important feedback
+            val shouldSpeak = feedback.isNotBlank() &&
+                    feedback != lastSpokenFeedback &&
+                    (result.status == "Correct" || result.status == "Incorrect") &&
+                    !tts.isSpeaking
 
-                    val preview = Preview.Builder().build()
-                    val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
-                    preview.setSurfaceProvider(previewView.surfaceProvider)
+            if (shouldSpeak) {
+                lastSpokenFeedback = feedback
+                tts.speak(feedback, TextToSpeech.QUEUE_FLUSH, null, null)
 
-                    val imageAnalyzer = ImageAnalysis.Builder()
-                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                        .build()
+                // Add cooldown
+                delay(3000)
+                lastSpokenFeedback = ""
+            }
+        }
+    }
 
-                    imageAnalyzer.setAnalyzer(cameraExecutor) { imageProxy ->
-                        val bitmap = imageProxy.toBitmap() ?: return@setAnalyzer
-                        viewModel.processFrame(bitmap)
-                        poseResult = viewModel.poseState
-                        imageProxy.close()
-                    }
-
-                    try {
-                        activity?.let { act ->
-                            cameraProvider.unbindAll()
-                            cameraProvider.bindToLifecycle(
-                                act,
-                                cameraSelector,
-                                preview,
-                                imageAnalyzer
-                            )
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }, ContextCompat.getMainExecutor(ctx))
-
-                previewView
-            }, modifier = Modifier
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(backgroundLightLavender)
+    ) {
+        // Simple header
+        Row(
+            modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f)
-            )
-
-            // Display pose info
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Button(
+                onClick = { (context as? ComponentActivity)?.finish() },
+                colors = ButtonDefaults.buttonColors(containerColor = lavender500)
             ) {
-                Text("Feedback: ${poseResult?.feedback ?: "Waiting..."}")
-                Text("Squat count: ${viewModel.repo.repCount}")
+                Text("← Back", color = Color.White)
+            }
 
+            Button(
+                onClick = { viewModel.resetCounts() },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+            ) {
+                Text("Reset", color = Color.White)
             }
         }
 
-        LaunchedEffect(poseResult) {
-            poseResult?.let { result ->
-                val feedback = result.feedback
-                if (feedback.isNotBlank() && feedback != lastSpokenFeedback) {
-                    lastSpokenFeedback = feedback
-                    if (!tts.isSpeaking) {
-                        tts.speak(feedback, TextToSpeech.QUEUE_FLUSH, null, null)
+        if (hasCameraPermission) {
+            // Camera preview with error handling
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(400.dp)
+                    .padding(horizontal = 16.dp)
+            ) {
+                AndroidView(
+                    factory = { ctx ->
+                        val previewView = PreviewView(ctx)
+
+                        try {
+                            val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
+
+                            cameraProviderFuture.addListener({
+                                try {
+                                    val cameraProvider = cameraProviderFuture.get()
+
+                                    val preview = Preview.Builder()
+                                        .build()
+                                        .also {
+                                            it.setSurfaceProvider(previewView.surfaceProvider)
+                                        }
+
+                                    val imageAnalyzer = ImageAnalysis.Builder()
+                                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                                        .build()
+
+                                    val cameraExecutor = Executors.newSingleThreadExecutor()
+
+                                    imageAnalyzer.setAnalyzer(cameraExecutor) { imageProxy ->
+                                        try {
+                                            val bitmap = imageProxy.toBitmap()
+                                            if (bitmap != null) {
+                                                viewModel.processFrame(bitmap)
+                                                poseResult = viewModel.poseState
+                                            }
+                                        } catch (e: Exception) {
+                                            e.printStackTrace()
+                                        } finally {
+                                            imageProxy.close()
+                                        }
+                                    }
+
+                                    // Use front camera
+                                    val cameraSelector = CameraSelector.Builder()
+                                        .requireLensFacing(CameraSelector.LENS_FACING_FRONT)
+                                        .build()
+
+                                    cameraProvider.unbindAll()
+                                    cameraProvider.bindToLifecycle(
+                                        context as? ComponentActivity ?: return@addListener,
+                                        cameraSelector,
+                                        preview,
+                                        imageAnalyzer
+                                    )
+
+                                } catch (e: Exception) {
+                                    // Log error but don't crash
+                                    android.util.Log.e("CameraError", "Camera setup failed", e)
+                                }
+                            }, ContextCompat.getMainExecutor(ctx))
+
+                        } catch (e: Exception) {
+                            android.util.Log.e("CameraError", "Camera initialization failed", e)
+                        }
+
+                        previewView
+                    },
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
+            // Stats display
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .background(Color.White, RoundedCornerShape(20.dp))
+                    .padding(20.dp)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Current exercise
+                    Text(
+                        text = viewModel.currentExercise.name.replace("_", " "),
+                        color = textPrimary,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Status row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Status", color = textSecondary, fontSize = 14.sp)
+                            Text(
+                                poseResult?.status ?: "Ready",
+                                color = when (poseResult?.status) {
+                                    "Correct" -> Color.Green
+                                    "Incorrect" -> Color.Red
+                                    else -> textSecondary
+                                },
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Angle", color = textSecondary, fontSize = 14.sp)
+                            Text(
+                                "${poseResult?.accuracy ?: 0}°",
+                                color = lavender500,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Reps", color = textSecondary, fontSize = 14.sp)
+                            Text(
+                                if (viewModel.currentExercise == PoseViewModel.ExerciseType.SQUAT)
+                                    "${viewModel.squatCount}"
+                                else
+                                    "${viewModel.pushUpCount}",
+                                color = lavender600,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // Feedback
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                when (poseResult?.status) {
+                                    "Correct" -> Color.Green.copy(alpha = 0.1f)
+                                    "Incorrect" -> Color.Red.copy(alpha = 0.1f)
+                                    else -> buttonLightGray
+                                },
+                                RoundedCornerShape(12.dp)
+                            )
+                            .padding(16.dp)
+                    ) {
+                        Column {
+                            Text(
+                                text = "AI Feedback",
+                                color = textSecondary,
+                                fontSize = 12.sp
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = poseResult?.feedback ?: "Position yourself in frame",
+                                color = textPrimary,
+                                fontSize = 16.sp
+                            )
+                        }
                     }
                 }
             }
-        }
 
+        } else {
+            // Permission view
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Camera Access Needed",
+                    color = textPrimary,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
 
-    } else {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text("Camera permission required to use AI Coach")
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = { cameraPermissionLauncher.launch(Manifest.permission.CAMERA) },
+                    colors = ButtonDefaults.buttonColors(containerColor = lavender500)
+                ) {
+                    Text("Allow Camera", color = Color.White)
+                }
+            }
         }
     }
 }
