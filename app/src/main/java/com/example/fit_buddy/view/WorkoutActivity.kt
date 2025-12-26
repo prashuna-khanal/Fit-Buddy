@@ -151,7 +151,7 @@ fun WorkoutScreen() {
                 2 -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         if (cameraPermissionGranted && viewModel != null) {
-                            AIScreen(viewModel)
+                            ExerciseActivityScreen()
 
                         } else {
                             Text("Camera permission required", color = Color.Gray)
