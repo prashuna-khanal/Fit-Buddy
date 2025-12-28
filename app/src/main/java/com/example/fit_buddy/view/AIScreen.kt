@@ -103,18 +103,20 @@ fun AIScreen(viewModel: PoseViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(backgroundLightLavender)
+            .background(backgroundWhite)
     ) {
         // Simple header
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(10.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Button(
                 onClick = { (context as? ComponentActivity)?.finish() },
+                modifier = Modifier.height(36.dp),
+                contentPadding = PaddingValues(horizontal = 15.dp, vertical = 0.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = lavender500)
             ) {
                 Text("← Back", color = Color.White)
@@ -122,19 +124,21 @@ fun AIScreen(viewModel: PoseViewModel) {
 
             Button(
                 onClick = { viewModel.resetCounts() },
+                modifier = Modifier.height(36.dp),
+                contentPadding = PaddingValues(horizontal = 15.dp, vertical = 0.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
             ) {
                 Text("Reset", color = Color.White)
             }
         }
-
+        Spacer(modifier = Modifier.height(20.dp))
         if (hasCameraPermission) {
             // Camera preview with error handling
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(400.dp)
-                    .padding(horizontal = 16.dp)
+                    .padding(top = 70.dp, bottom = 10.dp)
             ) {
                 AndroidView(
                     factory = { ctx ->
@@ -206,23 +210,24 @@ fun AIScreen(viewModel: PoseViewModel) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(top = 70.dp)
                     .background(Color.White, RoundedCornerShape(20.dp))
-                    .padding(20.dp)
+
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    Spacer(modifier = Modifier.height(10.dp))
                     // Current exercise
                     Text(
                         text = viewModel.currentExercise.name.replace("_", " "),
                         color = textPrimary,
-                        fontSize = 22.sp,
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
 
                     // Status row
                     Row(
@@ -267,36 +272,23 @@ fun AIScreen(viewModel: PoseViewModel) {
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
 
                     // Feedback
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .width(300.dp)
                             .background(
                                 when (poseResult?.status) {
                                     "Correct" -> Color.Green.copy(alpha = 0.1f)
                                     "Incorrect" -> Color.Red.copy(alpha = 0.1f)
                                     else -> buttonLightGray
                                 },
-                                RoundedCornerShape(12.dp)
+                                RoundedCornerShape(50.dp)
                             )
-                            .padding(16.dp)
-                    ) {
-                        Column {
-                            Text(
-                                text = "AI Feedback",
-                                color = textSecondary,
-                                fontSize = 12.sp
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = poseResult?.feedback ?: "Position yourself in frame",
-                                color = textPrimary,
-                                fontSize = 16.sp
-                            )
-                        }
-                    }
+                            .padding(20.dp)
+                    ) { }
+
                 }
             }
 
