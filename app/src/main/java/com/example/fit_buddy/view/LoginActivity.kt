@@ -1,4 +1,4 @@
-package com.example.fit_buddy
+package com.example.fit_buddy.view
 
 import androidx.compose.ui.tooling.preview.Preview
 import android.os.Bundle
@@ -26,6 +26,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.fit_buddy.R
+
 //import com.example.fitbuddy.R
 
 class LoginActivity : ComponentActivity() {

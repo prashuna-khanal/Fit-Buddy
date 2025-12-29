@@ -4,4 +4,5 @@
     <string name="title_activity_login">LoginActivity</string>
     <string name="title_activity_exercise">ExerciseActivity</string>
     <string name="title_activity_registration">RegistrationActivity</string>
+    <string name="title_activity_edit_profile_screen">EditProfileScreen</string>
 </resources>
