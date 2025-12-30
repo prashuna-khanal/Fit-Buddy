@@ -47,7 +47,12 @@ dependencies {
 
     implementation("io.coil-kt:coil-compose:2.5.0")
 //    for data storing cloudinary
+
     implementation("com.cloudinary:cloudinary-android:2.1.0")
+    val bom = platform("com.google.firebase:firebase-bom:34.7.0")
+    implementation(bom)
+
+    implementation("com.google.firebase:firebase-storage")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -61,6 +66,8 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.database)
+
+    implementation(libs.androidx.compose.runtime.livedata)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

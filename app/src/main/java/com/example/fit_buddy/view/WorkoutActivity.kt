@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,10 +33,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fit_buddy.AchievementScreen
 import com.example.fit_buddy.R
 //import androidx.core.app.ComponentActivity
 import com.example.fit_buddy.ui.theme.*
+import com.example.fit_buddy.viewmodel.FeedViewModel
+import com.example.fit_buddy.viewmodel.FeedViewModelFactory
 import com.example.fitbuddy.repository.PoseRepo
 import com.example.fitbuddy.view.AIScreen
 import com.example.fitbuddy.viewmodel.PoseViewModel
@@ -54,7 +58,13 @@ data class NavItem(val icon: Int, val label: String)
 @Composable
 
 fun WorkoutScreen() {
+    var showRequestsScreen by remember { mutableStateOf(false) }
+    var selectedProfileId by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
+    val feedViewModel: FeedViewModel = viewModel(
+       factory = FeedViewModelFactory(com.example.fit_buddy.repository.PostRepository(context))
+    )
+
 
     var selectedIndex by remember { mutableStateOf(0) }
     var cameraPermissionGranted by remember { mutableStateOf(false) }
@@ -147,7 +157,32 @@ fun WorkoutScreen() {
         ) {
             when (selectedIndex) {
                 0 -> WorkoutHomeScreen()
-                1 -> FeedSection()
+                1 -> {
+                    // 2. Integration with your Social Module
+                    if (selectedProfileId != null) {
+                        OtherUserProfileScreen(
+                            userId = selectedProfileId!!,
+                            viewModel = feedViewModel,
+                            onBack = { selectedProfileId = null }
+                        )
+                    } else if (showRequestsScreen) {
+                        // This assumes you observe the requests list in this screen
+                        val requests by feedViewModel.friendRequests.observeAsState(emptyList())
+                        FriendRequestsScreen(
+                            requests = requests,
+                            onAccept = { id -> feedViewModel.respondToRequest(id, true) },
+                            onDelete = { id -> feedViewModel.respondToRequest(id, false) },
+                            onProfileClick = { id -> selectedProfileId = id },
+                            onBack = { showRequestsScreen = false }
+                        )
+                    } else {
+                        FeedSection(
+                            viewModel = feedViewModel,
+                            onRequestsClick = { showRequestsScreen = true },
+                            onProfileClick = { id -> selectedProfileId = id }
+                        )
+                    }
+                }
                 2 -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         if (cameraPermissionGranted && viewModel != null) {
