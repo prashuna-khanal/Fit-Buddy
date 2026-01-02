@@ -33,84 +33,112 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.TopAppBarDefaults
+
 import androidx.compose.ui.layout.ContentScale
 
 
-@Composable
 @OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun OtherUserProfileScreen(
-    userId: String, //friend user id
-    viewModel: FeedViewModel,
-    onBack:() -> Unit
-){
-    val userPosts by viewModel.getPostsByUser(userId).observeAsState(emptyList())
+    userId: String,
+    viewModel: com.example.fit_buddy.viewmodel.FeedViewModel,
+    onBack: () -> Unit
+) {
+    // 1. Observe the target user's data and the request status
+    val allUsers by viewModel.allUsers.observeAsState(emptyList())
+    val user = allUsers.find { it.userId == userId }
 
-    val friendsCount by viewModel.getFriendCount(userId).observeAsState(0)
+    // Status can be: "none", "requested", or "friends"
+    val friendshipStatus by viewModel.getFriendshipStatus(userId).observeAsState("none")
+
+    val softLavender = Color(0xFFC9B6E4)
+    val buttonLavender = Color(0xFFB19CD9)
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = {
-                    Text(userId, fontWeight = FontWeight.Bold) //dynamic
-                },
+                title = { Text(user?.fullName ?: "Profile", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = onBack){
-                        Icon(painterResource(R.drawable.outline_arrow_back_ios_24),contentDescription = null)
+                    IconButton(onClick = onBack) {
+                        Icon(painterResource(R.drawable.outline_arrow_back_ios_24), contentDescription = "Back")
                     }
-                }
-
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
             )
         }
-    ) {
-        padding ->
-        Column (
-            modifier = Modifier.fillMaxSize().padding(padding).background(Color.White)
-        ){
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),verticalAlignment= Alignment.CenterVertically
-            ){
-                Box(
-                    modifier = Modifier.size(80.dp).clip(CircleShape).background(Color.Gray)
-                )
-                Spacer(modifier = Modifier.width(24.dp))
-                Row (
-                    modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceEvenly
-                ){
-                    ProfileStat(userPosts.size.toString(), label = "Posts")
-                    ProfileStat(friendsCount.toString(), label = "Friends")
-                }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .background(Color.White),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(24.dp))
 
-
-            }
-            androidx.compose.material3.HorizontalDivider(
-                modifier = Modifier.padding(top = 8.dp),
-                thickness = 0.5.dp,
-                color = Color.LightGray
-            )
-
-            androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
-                columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
-                modifier = Modifier.fillMaxSize()
+            // Profile Picture Circle
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(CircleShape)
+                    .background(softLavender),
+                contentAlignment = Alignment.Center
             ) {
-                items(userPosts.size) { index ->
-                    val post = userPosts[index]
-                    coil.compose.AsyncImage(
-                        model = post.imageUrl,
-                        contentDescription = null,
-                        modifier = Modifier
-                      .aspectRatio(1f)
-                            .padding(1.dp),
-                        contentScale = ContentScale.Crop
-                    )
-                }
+                Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(60.dp), tint = Color.White)
             }
-        }
-    }
 
-}
-@Composable
-fun ProfileStat(count:String,label: String){
-    Column (horizontalAlignment = Alignment.CenterHorizontally){
-        Text(text=count, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-        Text(text=label, fontSize = 12.sp, color = Color.Gray)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(text = user?.fullName ?: "Unknown User", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text(text = user?.email ?: "", fontSize = 14.sp, color = Color.Gray)
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+
+            Button(
+                onClick = {
+                    if (friendshipStatus == "none") {
+                        viewModel.sendFriendRequest(userId)
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth(0.6f)
+                    .height(50.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = when (friendshipStatus) {
+                        "requested" -> Color.LightGray
+                        "friends" -> Color(0xFF81C784) // Green for friends
+                        else -> buttonLavender
+                    }
+                ),
+                enabled = friendshipStatus == "none" // Disable if already requested or friends
+            ) {
+                Text(
+                    text = when (friendshipStatus) {
+                        "requested" -> "Requested"
+                        "friends" -> "Friends"
+                        else -> "Follow"
+                    },
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            // Placeholder for User's Posts
+            Text("User Posts", modifier = Modifier.padding(start = 16.dp).align(Alignment.Start), fontWeight = FontWeight.SemiBold)
+            Divider(modifier = Modifier.padding(16.dp))
+            //  can add a LazyVerticalGrid here later to show their photos!
+        }
     }
 }

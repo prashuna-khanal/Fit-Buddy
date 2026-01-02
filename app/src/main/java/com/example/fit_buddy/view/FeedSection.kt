@@ -47,8 +47,13 @@ fun FeedSection(
     onRequestsClick: () -> Unit,
     onProfileClick: (String) -> Unit
 ) {
+
     //observe live post
     val livePosts by viewModel.friendsPosts.observeAsState(emptyList())
+//    search actions variables
+    var isSearching by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+    val allUsers by viewModel.allUsers.observeAsState(emptyList())
 
 // seeing list of friend from repository
     val requests by viewModel.friendRequests.observeAsState(emptyList())
@@ -62,6 +67,14 @@ fun FeedSection(
 
     val posts = remember { samplePosts() }
     val buttonLavender = Color(0xFFD9C8F9)
+//    show users only after entering more
+    val filteredUsers = if (searchQuery.length >= 1) {
+        allUsers.filter {
+            it.fullName.contains(searchQuery, ignoreCase = true)
+        }
+    } else {
+        emptyList()
+    }
 
     // Image Picker Launcher
     val launcher = rememberLauncherForActivityResult(
@@ -82,7 +95,7 @@ fun FeedSection(
                 selectedImageUri = null
             },
             onUpload = { finalCaption ->
-                viewModel.sharePost(selectedImageUri!!, finalCaption, myUsername)
+                viewModel.sharePost(selectedImageUri!!, finalCaption, viewModel.currentUserId)
                 showCaptionScreen = false
                 selectedImageUri = null
                 showMyPostsScreen = true
@@ -111,9 +124,46 @@ fun FeedSection(
                         }
                     },
                     title = {
-                        Text("Feed", style = TextStyle(fontWeight = FontWeight.SemiBold), fontSize = 24.sp)
+                        if (isSearching){
+                            TextField(
+                                value = searchQuery,
+                                onValueChange = { searchQuery = it },
+                                placeholder = { Text("Search users...") },
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                                singleLine = true,
+                                colors = TextFieldDefaults.colors(
+                                    focusedTextColor = Color.Black,
+                                    unfocusedTextColor = Color.Black,
+                                    focusedContainerColor = Color.Transparent,
+                                    unfocusedContainerColor = Color.Transparent,
+                                    focusedIndicatorColor = Color.Transparent,
+                                    unfocusedIndicatorColor = Color.Transparent
+                                ),
+                                textStyle = TextStyle(fontSize = 18.sp, color = Color.Black)
+                            )
+
+
+                        }else {
+                            Text(
+                                "Feed",
+                                style = TextStyle(fontWeight = FontWeight.SemiBold),
+                                fontSize = 24.sp
+                            )
+                        }
                     },
                     actions = {
+//                        search
+//                       search
+                        IconButton(onClick = {
+                            isSearching = !isSearching
+                            if(!isSearching) searchQuery =""
+                        }) {
+                            Icon(
+                                painter = painterResource(id = if(isSearching)R.drawable.outline_arrow_downward_24 else R.drawable.outline_search_24  ),
+                                contentDescription = null,
+                                tint = Color.Black
+                            )
+                        }
                         // + FOR UPLOAD
                         IconButton(onClick = { launcher.launch("image/*") }) {
                             Icon(imageVector = Icons.Default.Add, contentDescription = "Post")
@@ -139,9 +189,48 @@ fun FeedSection(
                     .padding(padding)
                     .background(backgroundLightLavender)
             ) {
+//                for search
+            if (isSearching && searchQuery.length>=2){
+                LazyColumn (
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White)
+                ){
+                    items(filteredUsers) { user ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onProfileClick(user.userId)
+                                    isSearching = false
+                                    searchQuery = "" //khali for next time
+                                }
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+
+                            // Profile Placeholder
+                            AsyncImage(
+                                model = user.profilePicUrl,
+                                contentDescription = null,
+                                modifier = Modifier.size(40.dp).clip(CircleShape).background(Color.LightGray),
+                                contentScale = ContentScale.Crop,
+                                error = painterResource(id = R.drawable.outline_contacts_product_24)
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Text(user.fullName, fontWeight = FontWeight.Medium, color = Color.Black)
+                        }
+                    }
+                }
+                }else
+                {
+
+
                 // filtering Buttons Row
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Button(
@@ -166,31 +255,38 @@ fun FeedSection(
 
                 // main feed List
                 LazyColumn(
-                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
                     verticalArrangement = Arrangement.spacedBy(18.dp),
                     contentPadding = PaddingValues(bottom = 24.dp)
                 ) {
                     items(displayPosts) { post ->
-                        FeedCard(post = post,
-                            onUserClick ={
-                                onProfileClick(post.username)
-                            },
+                        FeedCard(
+                            post = post,
+                            currentUserId = viewModel.currentUserId,
+                            onUserClick = { onProfileClick(post.username) },
                             onLikeClick = {
-                                viewModel.toggleLike(post.id, post.likes)
-                            })
+                                viewModel.toggleLike(postId = post.id)
+                            }
+                        )
                     }
                 }
             }
         }
     }
 }
+}
 @Composable
 fun FeedCard(
     post: FeedPost,
+    currentUserId:String,
     onUserClick: () -> Unit,
     onLikeClick: () -> Unit,
     onDeleteClick: (() -> Unit)? = null
 ) {
+//    check liked or not
+    val isLikedByMe = post.likedBy.containsKey(currentUserId)
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -207,7 +303,10 @@ fun FeedCard(
                     .clickable { onUserClick() },
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(modifier = Modifier.size(32.dp).clip(CircleShape).background(Color.LightGray))
+                Box(modifier = Modifier
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(Color.LightGray))
                 Spacer(Modifier.width(8.dp))
                 Text(text = post.username, fontWeight = FontWeight.Bold)
 
@@ -226,25 +325,29 @@ fun FeedCard(
 
             //  image
             AsyncImage(
-                model = post.profilePic,
+                model = post.profilePic ?: R.drawable.outline_contacts_product_24,
                 contentDescription = null,
-                modifier = Modifier.fillMaxWidth().height(350.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(350.dp),
                 contentScale = ContentScale.Crop
             )
 
             // like Bar
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onLikeClick) {
                     Icon(
                         imageVector = Icons.Default.Favorite,
                         contentDescription = "Like",
-                        tint = if (post.likes > 0) Color.Red else Color.Gray
+                        tint = if (isLikedByMe) Color.Red else Color.Gray
                     )
                 }
-                Text(text = "${post.likes} likes", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                Text(text = "${post.likesCount} likes", fontSize = 14.sp, fontWeight = FontWeight.Medium)
             }
 
             // caption

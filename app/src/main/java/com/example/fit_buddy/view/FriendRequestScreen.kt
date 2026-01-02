@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -30,6 +31,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.fit_buddy.R
 import com.example.fit_buddy.model.FriendRequest
@@ -43,6 +45,7 @@ fun FriendRequestsScreen(requests: List<com.example.fit_buddy.model.FriendReques
                          onProfileClick:(String) -> Unit,
                          onBack:() -> Unit
 ){
+    val confirmLavender = Color(0xFFD9C8F9)
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -89,9 +92,10 @@ fun FriendRequestsScreen(requests: List<com.example.fit_buddy.model.FriendReques
 //                        buttons
                         Button(
                             onClick = { onAccept(request.userId) },
-                            shape = RoundedCornerShape(8.dp)
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = confirmLavender)
                         ) {
-                            Text("Confirm")
+                            Text("Confirm",color = Color.Black, fontSize = 12.sp)
                         }
                         Spacer(Modifier.width(8.dp))
 

@@ -34,7 +34,8 @@ fun MyPostsScreen(
     viewModel: FeedViewModel,
     onBack: () -> Unit // navigate back to FeedSection
 ) {
-    val myUsername ="Babita"
+
+    val myUsername =viewModel.currentUserId
     // observing real time data from Firebase via ViewModel
     val posts by viewModel.getPostsByUser(myUsername).observeAsState(emptyList())
 
@@ -190,16 +191,19 @@ fun MyPostsScreen(
                     }
                 }
             } else {
+                val filteredPosts = posts.filter { it.id == selectedPostId }
                 // vertical scroll
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp)
                 ) {
-                    items(posts) { post ->
+                    items(filteredPosts) { post ->
+
                         // resusing your existing FeedCard for consistent design
                         FeedCard(post = post, onUserClick = { },
-                            onLikeClick = { viewModel.toggleLike(post.id, post.likes) },
+                            currentUserId = viewModel.currentUserId,
+                            onLikeClick = { viewModel.toggleLike(post.id) },
                             onDeleteClick = {
                                 viewModel.deletePost(post.id)
                             })

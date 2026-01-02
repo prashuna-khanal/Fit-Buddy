@@ -6,7 +6,11 @@ data class FeedPost(
     val imageUrl: String = "",
     val caption: String = "",
     val timestamp: Long = 0L,
-    val likes: Int = 0,
+    val likedBy: Map<String, Boolean> = emptyMap(),
     val profilePic: Any = 0, // to accept String OR Int
     val comments: Int = 0
-)
+){
+//    count unique likes
+
+    val likesCount: Int get() = likedBy.size
+}

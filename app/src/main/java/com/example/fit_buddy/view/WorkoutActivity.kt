@@ -1,6 +1,7 @@
 package com.example.fit_buddy.view
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -34,35 +35,56 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.fit_buddy.AchievementScreen
 import com.example.fit_buddy.R
+import com.example.fit_buddy.repository.UserRepoImpl
 //import androidx.core.app.ComponentActivity
 import com.example.fit_buddy.ui.theme.*
 import com.example.fit_buddy.viewmodel.FeedViewModel
 import com.example.fit_buddy.viewmodel.FeedViewModelFactory
+import com.example.fit_buddy.viewmodel.UserViewModel
 import com.example.fitbuddy.repository.PoseRepo
 import com.example.fitbuddy.view.AIScreen
 import com.example.fitbuddy.viewmodel.PoseViewModel
+import com.example.fit_buddy.view.OtherUserProfileScreen
 class WorkoutActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            WorkoutScreen()
+            // dependencies
+            val navController = rememberNavController()
+            val userRepo = UserRepoImpl()
+            val viewModel: UserViewModel = viewModel(factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+                override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                    return UserViewModel(userRepo) as T
+                }
+            })
+
+            // WorkoutScreen directly
+                    WorkoutScreen(navController,viewModel)
+
+            }
         }
     }
-}
+
 
 data class NavItem(val icon: Int, val label: String)
 
 @Composable
 
-fun WorkoutScreen() {
+fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
+
+    val userRepo = com.example.fit_buddy.repository.UserRepoImpl() // instance
     var showRequestsScreen by remember { mutableStateOf(false) }
     var selectedProfileId by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
     val feedViewModel: FeedViewModel = viewModel(
-       factory = FeedViewModelFactory(com.example.fit_buddy.repository.PostRepository(context))
+       factory = FeedViewModelFactory(com.example.fit_buddy.repository.PostRepository(context),userRepo)
     )
 
 
@@ -158,7 +180,7 @@ fun WorkoutScreen() {
             when (selectedIndex) {
                 0 -> WorkoutHomeScreen()
                 1 -> {
-                    // 2. Integration with your Social Module
+                    //
                     if (selectedProfileId != null) {
                         OtherUserProfileScreen(
                             userId = selectedProfileId!!,
@@ -166,7 +188,7 @@ fun WorkoutScreen() {
                             onBack = { selectedProfileId = null }
                         )
                     } else if (showRequestsScreen) {
-                        // This assumes you observe the requests list in this screen
+
                         val requests by feedViewModel.friendRequests.observeAsState(emptyList())
                         FriendRequestsScreen(
                             requests = requests,
@@ -615,8 +637,25 @@ fun WorkoutListSection() {
     }
 }
 
-@Preview
+
+@Preview(showBackground = true)
 @Composable
 fun PreviewWorkoutScreen() {
-    WorkoutScreen()
+    val navController = rememberNavController()
+    val userRepo = UserRepoImpl()
+
+//     ViewModel requirements
+    val mockViewModel: UserViewModel = viewModel(
+        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                return UserViewModel(userRepo) as T
+            }
+        }
+    )
+
+    WorkoutScreen(
+        navController = navController,
+        userViewModel = mockViewModel
+    )
 }
+
