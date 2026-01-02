@@ -10,27 +10,24 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fit_buddy.R
 import com.example.fit_buddy.model.ExerciseModel
-import com.example.fit_buddy.ui.theme.backgroundLightLavender
-import com.example.fit_buddy.ui.theme.lavender500
-import com.example.fit_buddy.ui.theme.textPrimary
-import com.example.fit_buddy.ui.theme.textSecondary
-
+import com.example.fit_buddy.ui.theme.*
+import com.example.fitbuddy.repository.PoseRepo
+import com.example.fitbuddy.view.AIScreen
+import com.example.fitbuddy.viewmodel.PoseViewModel
 
 class ExerciseActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,44 +41,83 @@ class ExerciseActivity : ComponentActivity() {
 
 @Composable
 fun ExerciseActivityScreen() {
+    val context = LocalContext.current
+    val poseRepo = remember { PoseRepo(context) }
+    val poseViewModel = remember { PoseViewModel(poseRepo) }
 
-    val exercises = listOf(
-        ExerciseModel("Push Ups", R.drawable.pushup, "Chest • Triceps"),
-        ExerciseModel("Squats", R.drawable.squat, "Legs • Glutes"),
-        ExerciseModel("Plank", R.drawable.plank, "Core Strength"),
-        ExerciseModel("Lunges", R.drawable.lunge, "Leg Stability"),
-        ExerciseModel("Jumping Jacks", R.drawable.jumping_jack, "Full Body Cardio"),
-        ExerciseModel("Mountain Climbers", R.drawable.mountain_climber, "Core • Cardio")
-    )
+    // State to track if we should show AIScreen
+    var showAIScreen by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundLightLavender)
-            .verticalScroll(rememberScrollState())
-            .padding(top = 18.dp)
-    ) {
+    if (showAIScreen) {
+        // Show AIScreen with current exercise
+        AIScreen(viewModel = poseViewModel)
+    } else {
+        // Show Exercise List
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(backgroundLightLavender)
+                .verticalScroll(rememberScrollState())
+                .padding(top = 18.dp)
+        ) {
+            // Top Header
+            Text(
+                text = "Exercises",
+                fontSize = 30.sp,
+                fontWeight = FontWeight.Bold,
+                color = textPrimary,
+                modifier = Modifier.padding(start = 20.dp, bottom = 10.dp)
+            )
 
-        // Top Header
-        Text(
-            text = "Exercises",
-            fontSize = 30.sp,
-            fontWeight = FontWeight.Bold,
-            color = textPrimary,
-            modifier = Modifier.padding(start = 20.dp, bottom = 10.dp)
-        )
+            // List of Exercise Cards
+            val exercises = listOf(
+                ExerciseModel("Push Ups", R.drawable.pushup, "Chest • Triceps"),
+                ExerciseModel("Squats", R.drawable.squat, "Legs • Glutes"),
+                ExerciseModel("Plank", R.drawable.plank, "Core Strength"),
+                ExerciseModel("Lunges", R.drawable.lunge, "Leg Stability"),
+                ExerciseModel("Jumping Jacks", R.drawable.jumping_jack, "Full Body Cardio"),
+                ExerciseModel("Mountain Climbers", R.drawable.mountain_climber, "Core • Cardio")
+            )
 
-        // List of Exercise Cards
-        exercises.forEach { exercise ->
-            ExerciseCardUI(exercise)
+            exercises.forEach { exercise ->
+                ExerciseCardUI(
+                    exercise = exercise,
+                    onClick = {
+                        when (exercise.name) {
+                            "Push Ups" ->
+                                poseViewModel.setExerciseType(PoseViewModel.ExerciseType.PUSH_UP)
+
+                            "Squats" ->
+                                poseViewModel.setExerciseType(PoseViewModel.ExerciseType.SQUAT)
+
+                            "Plank" ->
+                                poseViewModel.setExerciseType(PoseViewModel.ExerciseType.PLANK)
+
+                            "Lunges" ->
+                                poseViewModel.setExerciseType(PoseViewModel.ExerciseType.LUNGE)
+
+                            "Jumping Jacks" ->
+                                poseViewModel.setExerciseType(PoseViewModel.ExerciseType.JUMPING_JACK)
+
+                            "Mountain Climbers" ->
+                                poseViewModel.setExerciseType(PoseViewModel.ExerciseType.MOUNTAIN_CLIMBER)
+                        }
+                        showAIScreen = true
+                    }
+
+                )
+            }
+
+            Spacer(modifier = Modifier.height(40.dp))
         }
-
-        Spacer(modifier = Modifier.height(40.dp))
     }
 }
 
 @Composable
-fun ExerciseCardUI(exercise: ExerciseModel) {
+fun ExerciseCardUI(
+    exercise: ExerciseModel,
+    onClick: () -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -90,12 +126,10 @@ fun ExerciseCardUI(exercise: ExerciseModel) {
             .background(Color.White)
             .padding(18.dp)
     ) {
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             // Exercise Image
             Image(
                 painter = painterResource(id = exercise.image),
@@ -111,7 +145,6 @@ fun ExerciseCardUI(exercise: ExerciseModel) {
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-
                 Text(
                     text = exercise.name,
                     fontSize = 20.sp,
@@ -131,7 +164,7 @@ fun ExerciseCardUI(exercise: ExerciseModel) {
 
                 // START NOW Button
                 Button(
-                    onClick = { /* TODO: open AI tracking */ },
+                    onClick = onClick,
                     colors = ButtonDefaults.buttonColors(containerColor = lavender500),
                     shape = RoundedCornerShape(12.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
@@ -142,10 +175,4 @@ fun ExerciseCardUI(exercise: ExerciseModel) {
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ExerciseActivityPreview() {
-    ExerciseActivityScreen()
 }
