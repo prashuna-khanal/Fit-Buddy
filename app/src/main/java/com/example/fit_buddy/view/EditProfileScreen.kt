@@ -1,8 +1,5 @@
 package com.example.fit_buddy.view
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,17 +23,9 @@ import androidx.compose.ui.unit.sp
 import com.example.fit_buddy.R
 import com.example.fit_buddy.ui.theme.lavender400
 
-class EditProfileActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            EditProfile()
-        }
-    }
-}
 
 @Composable
-fun EditProfile() {
+fun EditProfileScreen() {
 
     var name by remember { mutableStateOf("SAM") }
     var email by remember { mutableStateOf("sam@gmail.com") }
@@ -49,23 +38,47 @@ fun EditProfile() {
             .background(Color.White)
     ) {
 
-        // 🔶 HEADER
+        //  HEADER
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(120.dp)
                 .background(lavender400)
         ) {
-            Text(
-                text = "Edit Profile",
-                color = Color.White,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.Center)
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 48.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                Icon(
+                    painter = painterResource(R.drawable.baseline_arrow_back_ios_24),
+                    contentDescription = "Back",
+                    tint = Color.White,
+                    modifier = Modifier.size(28.dp)
+                )
+
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Edit Profile",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+
+                // Spacer to balance the back icon
+                Spacer(modifier = Modifier.width(28.dp))
+            }
         }
 
-        // 🔶 PROFILE IMAGE
+
+        // PROFILE IMAGE
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -92,21 +105,21 @@ fun EditProfile() {
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // 🔶 FULL NAME
+        // FULL NAME
         ProfileInputField(
             label = "FULL NAME",
             value = name,
             onValueChange = { name = it }
         )
 
-        // 🔶 EMAIL
+        // EMAIL
         ProfileInputField(
             label = "EMAIL ID",
             value = email,
             onValueChange = { email = it }
         )
 
-        // 🔶 PASSWORD WITH EYE ICON
+        //  PASSWORD WITH EYE ICON
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -148,7 +161,7 @@ fun EditProfile() {
 
         Spacer(modifier = Modifier.height(30.dp))
 
-        // 🔶 UPDATE BUTTON
+        // UPDATE BUTTON
         Button(
             onClick = { /* Save profile */ },
             modifier = Modifier
@@ -201,6 +214,6 @@ fun ProfileInputField(
 }
 @Preview
 @Composable
-fun EditProfilePreview() {
-    EditProfile()
+fun EditProfileScreenPreview() {
+    EditProfileScreen()
 }
