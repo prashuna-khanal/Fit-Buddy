@@ -1,0 +1,89 @@
+package com.example.fit_buddy.repository
+
+import com.example.fit_buddy.model.UserModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+
+class UserRepoImpl : UserRepo {
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+
+
+    private val db: FirebaseDatabase = FirebaseDatabase.getInstance()
+    private val usersRef = db.getReference("users")
+
+    override fun login(email: String, password: String, callback: (Boolean, String) -> Unit) {
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    callback(true, "Welcome Back!")
+                } else {
+                    callback(false, task.exception?.message ?: "Login Failed")
+                }
+            }
+    }
+
+    override fun register(email: String, password: String, callback: (Boolean, String, String) -> Unit) {
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val userId = auth.currentUser?.uid ?: ""
+                    callback(true, "Account Created Successfully", userId)
+                } else {
+                    callback(false, task.exception?.message ?: "Registration Failed", "")
+                }
+            }
+    }
+
+    override fun addUserToDatabase(userId: String, userModel: UserModel, callback: (Boolean, String) -> Unit) {
+
+        val userRef = db.getReference("users").child(userId)
+
+        userRef.setValue(userModel)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    callback(true, "Profile synced successfully")
+                } else {
+                    callback(false, task.exception?.message ?: "Failed to save profile")
+                }
+            }
+    }
+
+    override fun getUserData(userId: String): Flow<UserModel?> = callbackFlow {
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val user = snapshot.getValue(UserModel::class.java)
+                trySend(user)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                close(error.toException())
+            }
+        }
+        usersRef.child(userId).addValueEventListener(listener)
+        awaitClose { usersRef.child(userId).removeEventListener(listener) }
+    }
+
+    override fun getAllUsers(): Flow<List<UserModel>> = callbackFlow {
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val users = snapshot.children.mapNotNull { it.getValue(UserModel::class.java) }
+                trySend(users)
+            }
+            override fun onCancelled(error: DatabaseError) {
+                close(error.toException())
+            }
+        }
+        usersRef.addValueEventListener(listener)
+        awaitClose { usersRef.removeEventListener(listener) }
+    }
+
+    override fun getCurrentUserId(): String? {
+        return auth.currentUser?.uid
+    }
+}
