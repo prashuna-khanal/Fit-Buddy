@@ -32,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.example.fit_buddy.AchievementScreen
 import com.example.fit_buddy.R
 //import androidx.core.app.ComponentActivity
 import com.example.fit_buddy.ui.theme.*
@@ -146,11 +147,11 @@ fun WorkoutScreen() {
         ) {
             when (selectedIndex) {
                 0 -> WorkoutHomeScreen()
-                1 -> FeedSection()
+//                1 -> FeedSection()
                 2 -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         if (cameraPermissionGranted && viewModel != null) {
-                            AIScreen(viewModel)
+                            ExerciseActivityScreen()
 
                         } else {
                             Text("Camera permission required", color = Color.Gray)

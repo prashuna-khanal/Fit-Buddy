@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -42,6 +43,11 @@ android {
 }
 
 dependencies {
+//     for gallery
+
+    implementation("io.coil-kt:coil-compose:2.5.0")
+//    for data storing cloudinary
+    implementation("com.cloudinary:cloudinary-android:2.1.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -52,6 +58,10 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.database)
+    implementation(libs.androidx.compose.runtime.livedata)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -59,6 +69,7 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
 
     //MediaPipe Dependency for Pose Detection
     implementation("com.google.mediapipe:tasks-vision:latest.release")
@@ -69,4 +80,5 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:1.3.3")
     implementation("androidx.camera:camera-view:1.3.3")
     implementation("androidx.camera:camera-video:1.3.3")
+
 }
