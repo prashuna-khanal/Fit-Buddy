@@ -83,13 +83,28 @@ fun ExerciseActivityScreen() {
                 ExerciseCardUI(
                     exercise = exercise,
                     onClick = {
-                        // Set the correct exercise type
                         when (exercise.name) {
-                            "Push Ups" -> poseViewModel.setExerciseType(PoseViewModel.ExerciseType.PUSH_UP)
-                            else -> poseViewModel.setExerciseType(PoseViewModel.ExerciseType.SQUAT)
+                            "Push Ups" ->
+                                poseViewModel.setExerciseType(PoseViewModel.ExerciseType.PUSH_UP)
+
+                            "Squats" ->
+                                poseViewModel.setExerciseType(PoseViewModel.ExerciseType.SQUAT)
+
+                            "Plank" ->
+                                poseViewModel.setExerciseType(PoseViewModel.ExerciseType.PLANK)
+
+                            "Lunges" ->
+                                poseViewModel.setExerciseType(PoseViewModel.ExerciseType.LUNGE)
+
+                            "Jumping Jacks" ->
+                                poseViewModel.setExerciseType(PoseViewModel.ExerciseType.JUMPING_JACK)
+
+                            "Mountain Climbers" ->
+                                poseViewModel.setExerciseType(PoseViewModel.ExerciseType.MOUNTAIN_CLIMBER)
                         }
                         showAIScreen = true
                     }
+
                 )
             }
 
