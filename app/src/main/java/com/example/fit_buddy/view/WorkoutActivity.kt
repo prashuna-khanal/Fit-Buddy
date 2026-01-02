@@ -147,7 +147,7 @@ fun WorkoutScreen() {
         ) {
             when (selectedIndex) {
                 0 -> WorkoutHomeScreen()
-                1 -> FeedSection()
+//                1 -> FeedSection()
                 2 -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         if (cameraPermissionGranted && viewModel != null) {
