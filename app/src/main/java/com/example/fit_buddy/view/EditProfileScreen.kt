@@ -25,10 +25,11 @@ import com.example.fit_buddy.ui.theme.lavender400
 
 
 @Composable
-fun EditProfileScreen() {
+fun EditProfileScreenComposable() {
 
     var name by remember { mutableStateOf("SAM") }
     var email by remember { mutableStateOf("sam@gmail.com") }
+    var weight by remember{mutableStateOf("50kg")}
     var password by remember { mutableStateOf("password123") }
     var passwordVisible by remember { mutableStateOf(false) }
 
@@ -117,6 +118,13 @@ fun EditProfileScreen() {
             label = "EMAIL ID",
             value = email,
             onValueChange = { email = it }
+        )
+
+        // WEIGHT
+        ProfileInputField(
+            label = "WEIGHT",
+            value = weight,
+            onValueChange = { weight = it }
         )
 
         //  PASSWORD WITH EYE ICON
@@ -215,5 +223,5 @@ fun ProfileInputField(
 @Preview
 @Composable
 fun EditProfileScreenPreview() {
-    EditProfileScreen()
+    EditProfileScreenComposable()
 }
