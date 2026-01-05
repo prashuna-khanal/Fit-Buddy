@@ -19,6 +19,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fit_buddy.R
 import com.example.fit_buddy.ui.theme.backgroundLightLavender
+import com.example.fitbuddy.view.AIScreen
 
 
 @Composable
@@ -102,11 +107,14 @@ fun ProfileScreen() {
         Spacer(modifier = Modifier.height(30.dp))
 
         // SETTINGS
-        SettingItem(R.drawable.baseline_person_24, "Edit Profile")
-        SettingItem(R.drawable.baseline_notifications_24, "Notifications")
-        SettingItem(R.drawable.baseline_security_24, "Privacy & Security")
-        SettingItem(R.drawable.baseline_settings_24, "App Settings")
+        val navItems = listOf(
+        SettingItem(R.drawable.baseline_person_24, "Edit Profile"),
+        SettingItem(R.drawable.baseline_people_24, "Friends"),
+        SettingItem(R.drawable.baseline_notifications_24, "Notifications"),
+        SettingItem(R.drawable.baseline_security_24, "Privacy & Security"),
+        SettingItem(R.drawable.baseline_settings_24, "App Settings"),
         SettingItem(R.drawable.baseline_help_24, "Help & Support")
+        )
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -181,6 +189,25 @@ fun SettingItemLogout(label: String) {
             color = Color(0xFFD00000)
         )
     }
+    var selectedIndex by remember { mutableStateOf(0) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .padding()
+    ) {
+        when (selectedIndex) {
+            0 -> ProfileScreen()
+            1 -> EditProfileScreenComposable()
+//            2 -> Friends
+
+//            3 -> NotificationScreen()
+            4 -> PrivacySecurityScreenComposable()
+//            5 -> AppSettingScreen()
+            6 -> HelpSupportScreenComposable()
+        }
+    }
 }
 
 
@@ -189,4 +216,3 @@ fun SettingItemLogout(label: String) {
 fun ProfilePreview(){
     ProfileScreen()
 }
-
