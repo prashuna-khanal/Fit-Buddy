@@ -1,16 +1,24 @@
+
 package com.example.fit_buddy.view
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import com.example.fit_buddy.model.FriendRequest
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add // Required for the + button
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,231 +30,336 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.fit_buddy.R
-//import com.example.fit_buddy.ui.theme.Black
+import com.example.fit_buddy.model.FeedPost
 import com.example.fit_buddy.ui.theme.backgroundLightLavender
 import com.example.fit_buddy.ui.theme.textMuted
 import com.example.fit_buddy.ui.theme.textPrimary
+import com.example.fit_buddy.model.samplePosts
+import kotlinx.coroutines.Dispatchers
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FeedSection(myUsername: String ="BABITA") {
-    val posts = remember { samplePosts() }
-//    button color of feed all, friends and mypost
-    val buttonLavender = Color(0xFFD9C8F9)
-//    state varibale so that known when which feed is selected
-    var selectedFilter by remember {mutableStateOf(("All"))}
-//    tracking which button is being displayed
+fun FeedSection(
+    myUsername: String = "BABITA",
+    viewModel: com.example.fit_buddy.viewmodel.FeedViewModel,
+    onRequestsClick: () -> Unit,
+    onProfileClick: (String) -> Unit
+) {
+
+    //observe live post
+    val livePosts by viewModel.friendsPosts.observeAsState(emptyList())
+//    search actions variables
+    var isSearching by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+    val allUsers by viewModel.allUsers.observeAsState(emptyList())
+
+// seeing list of friend from repository
+    val requests by viewModel.friendRequests.observeAsState(emptyList())
+    val dummyPosts = remember { samplePosts() }
+    val displayPosts = if(livePosts.isEmpty()) dummyPosts else livePosts
+    // State variables
+    var selectedImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    var showCaptionScreen by remember { mutableStateOf(false) }
     var showMyPostsScreen by remember { mutableStateOf(false) }
-//    ifshowMyPostScreen is true, show that instead of freidns posts
-    if (showMyPostsScreen) {
-//        filyer and only show post belongs to the user
-        val myPosts = posts.filter { it.username == myUsername }
+    var selectedFilter by remember { mutableStateOf("All") }
 
-        MyPostsScreen(posts = myPosts,
-            onBack = {
-                showMyPostsScreen=false
-            })
-
-
-
+    val posts = remember { samplePosts() }
+    val buttonLavender = Color(0xFFD9C8F9)
+//    show users only after entering more
+    val filteredUsers = if (searchQuery.length >= 1) {
+        allUsers.filter {
+            it.fullName.contains(searchQuery, ignoreCase = true)
+        }
+    } else {
+        emptyList()
     }
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    titleContentColor = Black,
-                    actionIconContentColor = Black,
-                    navigationIconContentColor = Black,
-                    containerColor = backgroundLightLavender
-                ),
-                navigationIcon = {
-                    IconButton(onClick = {}) {
-                        Icon(
-                            painter = painterResource(R.drawable.outline_arrow_back_ios_24),
-                            contentDescription = null
-                        )
+    // Image Picker Launcher
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            selectedImageUri = it
+            showCaptionScreen = true
+        }
+    }
+
+    // navigation logic
+    if (showCaptionScreen && selectedImageUri != null) {
+        CaptionEntryScreen(
+            uri = selectedImageUri!!,
+            onBack = {
+                showCaptionScreen = false
+                selectedImageUri = null
+            },
+            onUpload = { finalCaption ->
+                viewModel.sharePost(selectedImageUri!!, finalCaption, viewModel.currentUserId)
+                showCaptionScreen = false
+                selectedImageUri = null
+                showMyPostsScreen = true
+            }
+        )
+    } else if (showMyPostsScreen) {
+        // call  MyPostsScreen.kt file
+        MyPostsScreen(
+            viewModel = viewModel,
+            onBack = {
+                showMyPostsScreen = false
+                selectedFilter = "All"
+            }
+        )
+    } else {
+        // main feed
+        Scaffold(
+            topBar = {
+                CenterAlignedTopAppBar(
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = backgroundLightLavender
+                    ),
+                    navigationIcon = {
+                        IconButton(onClick = {}) {
+                            Icon(painterResource(R.drawable.outline_arrow_back_ios_24), null)
+                        }
+                    },
+                    title = {
+                        if (isSearching){
+                            TextField(
+                                value = searchQuery,
+                                onValueChange = { searchQuery = it },
+                                placeholder = { Text("Search users...") },
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                                singleLine = true,
+                                colors = TextFieldDefaults.colors(
+                                    focusedTextColor = Color.Black,
+                                    unfocusedTextColor = Color.Black,
+                                    focusedContainerColor = Color.Transparent,
+                                    unfocusedContainerColor = Color.Transparent,
+                                    focusedIndicatorColor = Color.Transparent,
+                                    unfocusedIndicatorColor = Color.Transparent
+                                ),
+                                textStyle = TextStyle(fontSize = 18.sp, color = Color.Black)
+                            )
+
+
+                        }else {
+                            Text(
+                                "Feed",
+                                style = TextStyle(fontWeight = FontWeight.SemiBold),
+                                fontSize = 24.sp
+                            )
+                        }
+                    },
+                    actions = {
+//                        search
+//                       search
+                        IconButton(onClick = {
+                            isSearching = !isSearching
+                            if(!isSearching) searchQuery =""
+                        }) {
+                            Icon(
+                                painter = painterResource(id = if(isSearching)R.drawable.outline_arrow_downward_24 else R.drawable.outline_search_24  ),
+                                contentDescription = null,
+                                tint = Color.Black
+                            )
+                        }
+                        // + FOR UPLOAD
+                        IconButton(onClick = { launcher.launch("image/*") }) {
+                            Icon(imageVector = Icons.Default.Add, contentDescription = "Post")
+                        }
+                        IconButton(onClick = onRequestsClick) {
+                            BadgedBox(
+                                badge = {
+                                    if (requests.isNotEmpty()) {
+                                        Badge { Text(requests.size.toString()) }
+                                    }
+                                }
+                            ) {
+                                Icon(painterResource(R.drawable.outline_contacts_product_24), null)
+                            }
+                        }
                     }
-                },
-                title = {
-                    Text("Feed", style = TextStyle(fontWeight = FontWeight.SemiBold), fontSize = 24.sp)
+                )
+            }
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .background(backgroundLightLavender)
+            ) {
+//                for search
+            if (isSearching && searchQuery.length>=2){
+                LazyColumn (
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White)
+                ){
+                    items(filteredUsers) { user ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onProfileClick(user.userId)
+                                    isSearching = false
+                                    searchQuery = "" //khali for next time
+                                }
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+
+                            // Profile Placeholder
+                            AsyncImage(
+                                model = user.profilePicUrl,
+                                contentDescription = null,
+                                modifier = Modifier.size(40.dp).clip(CircleShape).background(Color.LightGray),
+                                contentScale = ContentScale.Crop,
+                                error = painterResource(id = R.drawable.outline_contacts_product_24)
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Text(user.fullName, fontWeight = FontWeight.Medium, color = Color.Black)
+                        }
+                    }
+                }
+                }else
+                {
+
+
+                // filtering Buttons Row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Button(
+                        onClick = { selectedFilter = "All" },
+                        colors = ButtonDefaults.buttonColors(containerColor = buttonLavender),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("All", color = if (selectedFilter == "All") Color.Blue else textPrimary)
+                    }
+
+                    Button(
+                        onClick = {
+                            selectedFilter = "My Post"
+                            showMyPostsScreen = true
                         },
-                actions = {
-                    IconButton(onClick = {}) {
-                        Icon(
-                            painter = painterResource(R.drawable.outline_contacts_product_24),
-                            contentDescription = null
+                        colors = ButtonDefaults.buttonColors(containerColor = buttonLavender),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("My Post", color = if (selectedFilter == "My Post") Color.Blue else textPrimary)
+                    }
+                }
+
+                // main feed List
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(18.dp),
+                    contentPadding = PaddingValues(bottom = 24.dp)
+                ) {
+                    items(displayPosts) { post ->
+                        FeedCard(
+                            post = post,
+                            currentUserId = viewModel.currentUserId,
+                            onUserClick = { onProfileClick(post.username) },
+                            onLikeClick = {
+                                viewModel.toggleLike(postId = post.id)
+                            }
                         )
                     }
                 }
-            )
+            }
         }
-    ) { padding ->
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .background(backgroundLightLavender)
-        ) {
-            // Buttons row below AppBar
+    }
+}
+}
+@Composable
+fun FeedCard(
+    post: FeedPost,
+    currentUserId:String,
+    onUserClick: () -> Unit,
+    onLikeClick: () -> Unit,
+    onDeleteClick: (() -> Unit)? = null
+) {
+//    check liked or not
+    val isLikedByMe = post.likedBy.containsKey(currentUserId)
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Column {
+            //header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(8.dp)
+                    .clickable { onUserClick() },
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Button(
-                    onClick = { selectedFilter ="All"},
-                    colors = ButtonDefaults.buttonColors(containerColor = buttonLavender),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("All", color = if(selectedFilter =="All")Color.Blue else textPrimary,
-                        fontWeight = if(selectedFilter =="All") FontWeight.Bold else FontWeight.Normal)
+                Box(modifier = Modifier
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(Color.LightGray))
+                Spacer(Modifier.width(8.dp))
+                Text(text = post.username, fontWeight = FontWeight.Bold)
 
-                }
+                Spacer(Modifier.weight(1f))
 
-                Button(
-                    onClick = { selectedFilter = "My Post"
-//                        navigation made
-                        showMyPostsScreen = true
-                              },
-                    colors = ButtonDefaults.buttonColors(containerColor = buttonLavender),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("My Post", color = if (selectedFilter == "My Post") Color.Blue else textPrimary,
-                        fontWeight = if (selectedFilter == "My Post") FontWeight.Bold else FontWeight.Normal)
+                // delete button only for postscreen
+                if (onDeleteClick != null) {
+                    IconButton(onClick = onDeleteClick) {
+                        Icon(Icons.Default.Delete,
+                            contentDescription = "Delete Post",
+                            tint = Color.Gray
+                        )
+                    }
                 }
             }
 
-            // Feed posts
-            LazyColumn(
+            //  image
+            AsyncImage(
+                model = post.profilePic ?: R.drawable.outline_contacts_product_24,
+                contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
-                verticalArrangement = Arrangement.spacedBy(18.dp),
-                contentPadding = PaddingValues(bottom = 24.dp)
-            ) {
-                items(posts) { post ->
-                    FeedCard(post)
-                }
-            }
-        }
-    }
-}
-
-// ====================== Feed Card ======================
-@Composable
-fun FeedCard(post: FeedPost) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .background(Color.White)
-            .padding(16.dp)
-    ) {
-        // User info row
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Image(
-                painter = painterResource(id = post.profilePic),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(45.dp)
-                    .clip(CircleShape),
+                    .height(350.dp),
                 contentScale = ContentScale.Crop
             )
-            Spacer(modifier = Modifier.width(12.dp))
-            Column {
-                Text(post.username, fontSize = 16.sp, color = textPrimary)
-                Text(post.time, fontSize = 12.sp, color = textMuted)
+
+            // like Bar
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onLikeClick) {
+                    Icon(
+                        imageVector = Icons.Default.Favorite,
+                        contentDescription = "Like",
+                        tint = if (isLikedByMe) Color.Red else Color.Gray
+                    )
+                }
+                Text(text = "${post.likesCount} likes", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            }
+
+            // caption
+            if (post.caption.isNotEmpty()) {
+                Text(
+                    text = post.caption,
+                    modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
+                    fontSize = 14.sp,
+                    color = Color.DarkGray
+                )
             }
         }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // Caption
-        Text(post.caption, fontSize = 14.sp, color = textPrimary)
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // Post image
-        Image(
-            painter = painterResource(id = post.postImage),
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(300.dp)
-                .clip(RoundedCornerShape(16.dp)),
-            contentScale = ContentScale.Crop
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Likes + comments
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = Icons.Default.Favorite,
-                contentDescription = "Like",
-                tint = Color.Red,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(6.dp))
-            Text("${post.likes} Likes", color = textPrimary)
-            Spacer(modifier = Modifier.width(12.dp))
-            Icon(
-                painter = painterResource(R.drawable.talk_10298102),
-                contentDescription = null,
-                tint = Color.Red,
-                modifier = Modifier.size(24.dp).padding(horizontal = 3.dp)
-            )
-            Text("${post.comments} Comments", color = textPrimary)
-        }
     }
-}
-
-// ====================== Data Model ======================
-data class FeedPost(
-    val username: String,
-    val profilePic: Int,
-    val postImage: Int,
-    val caption: String,
-    val time: String,
-    val likes: Int,
-    val comments: Int
-)
-
-// ====================== Sample Posts ======================
-fun samplePosts(): List<FeedPost> {
-    return listOf(
-        FeedPost(
-            "Anmy Shrestha",
-            R.drawable.gympost,
-            R.drawable.gympost,
-            "FitBuddy helped me stay consistent! 💪🔥",
-            "1h ago",
-            125,
-            34
-        ),
-        FeedPost(
-            "Sam Adams",
-            R.drawable.gympost,
-            R.drawable.gympost,
-            "Crushed my morning workout 🏋️‍♂️",
-            "3h ago",
-            98,
-            12
-        ),
-        FeedPost(
-            "Maya Karki",
-            R.drawable.gympost,
-            R.drawable.gympost,
-            "Healthy eating + training = results 💜",
-            "6h ago",
-            160,
-            27
-        )
-    )
 }
 

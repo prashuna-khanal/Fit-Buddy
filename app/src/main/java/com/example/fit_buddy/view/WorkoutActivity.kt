@@ -1,6 +1,7 @@
 package com.example.fit_buddy.view
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,28 +34,59 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.fit_buddy.AchievementScreen
 import com.example.fit_buddy.R
+import com.example.fit_buddy.repository.UserRepoImpl
 //import androidx.core.app.ComponentActivity
 import com.example.fit_buddy.ui.theme.*
+import com.example.fit_buddy.viewmodel.FeedViewModel
+import com.example.fit_buddy.viewmodel.FeedViewModelFactory
+import com.example.fit_buddy.viewmodel.UserViewModel
 import com.example.fitbuddy.repository.PoseRepo
 import com.example.fitbuddy.view.AIScreen
 import com.example.fitbuddy.viewmodel.PoseViewModel
+import com.example.fit_buddy.view.OtherUserProfileScreen
 class WorkoutActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            WorkoutScreen()
+            // dependencies
+            val navController = rememberNavController()
+            val userRepo = UserRepoImpl()
+            val viewModel: UserViewModel = viewModel(factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+                override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                    return UserViewModel(userRepo) as T
+                }
+            })
+
+            // WorkoutScreen directly
+                    WorkoutScreen(navController,viewModel)
+
+            }
         }
     }
-}
+
 
 data class NavItem(val icon: Int, val label: String)
 
 @Composable
 
-fun WorkoutScreen() {
+fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
+
+    val userRepo = com.example.fit_buddy.repository.UserRepoImpl() // instance
+    var showRequestsScreen by remember { mutableStateOf(false) }
+    var selectedProfileId by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
+    val feedViewModel: FeedViewModel = viewModel(
+       factory = FeedViewModelFactory(com.example.fit_buddy.repository.PostRepository(context),userRepo)
+    )
+
 
     var selectedIndex by remember { mutableStateOf(0) }
     var cameraPermissionGranted by remember { mutableStateOf(false) }
@@ -146,11 +179,39 @@ fun WorkoutScreen() {
         ) {
             when (selectedIndex) {
                 0 -> WorkoutHomeScreen()
-                1 -> FeedSection()
+
+
+
+                1 -> {
+                    //
+                    if (selectedProfileId != null) {
+                        OtherUserProfileScreen(
+                            userId = selectedProfileId!!,
+                            viewModel = feedViewModel,
+                            onBack = { selectedProfileId = null }
+                        )
+                    } else if (showRequestsScreen) {
+
+                        val requests by feedViewModel.friendRequests.observeAsState(emptyList())
+                        FriendRequestsScreen(
+                            requests = requests,
+                            onAccept = { id -> feedViewModel.respondToRequest(id, true) },
+                            onDelete = { id -> feedViewModel.respondToRequest(id, false) },
+                            onProfileClick = { id -> selectedProfileId = id },
+                            onBack = { showRequestsScreen = false }
+                        )
+                    } else {
+                        FeedSection(
+                            viewModel = feedViewModel,
+                            onRequestsClick = { showRequestsScreen = true },
+                            onProfileClick = { id -> selectedProfileId = id }
+                        )
+                    }
+                }
                 2 -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         if (cameraPermissionGranted && viewModel != null) {
-                            AIScreen(viewModel)
+                            ExerciseActivityScreen()
 
                         } else {
                             Text("Camera permission required", color = Color.Gray)
@@ -579,8 +640,25 @@ fun WorkoutListSection() {
     }
 }
 
-@Preview
+
+@Preview(showBackground = true)
 @Composable
 fun PreviewWorkoutScreen() {
-    WorkoutScreen()
+    val navController = rememberNavController()
+    val userRepo = UserRepoImpl()
+
+//     ViewModel requirements
+    val mockViewModel: UserViewModel = viewModel(
+        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                return UserViewModel(userRepo) as T
+            }
+        }
+    )
+
+    WorkoutScreen(
+        navController = navController,
+        userViewModel = mockViewModel
+    )
 }
+
