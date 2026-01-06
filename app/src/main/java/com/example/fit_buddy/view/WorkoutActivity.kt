@@ -219,7 +219,8 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
                     }
                 }
                 3 -> AchievementScreen()
-                4 -> ProfileScreen()
+                4 ->  ProfileSectionComposable()
+
             }
         }
     }

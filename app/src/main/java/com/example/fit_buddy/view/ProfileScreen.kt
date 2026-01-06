@@ -34,11 +34,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fit_buddy.R
 import com.example.fit_buddy.ui.theme.backgroundLightLavender
-import com.example.fitbuddy.view.AIScreen
 
+data class SettingItem(val icon: Int, val label: String)
 
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(onSettingClick: (Int) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -60,7 +60,7 @@ fun ProfileScreen() {
                 tint = Color.Black,
                 modifier = Modifier
                     .size(28.dp)
-                    .clickable { }
+                    .clickable { /* Handle back if needed */ }
             )
 
             Box(
@@ -108,13 +108,21 @@ fun ProfileScreen() {
 
         // SETTINGS
         val navItems = listOf(
-        SettingItem(R.drawable.baseline_person_24, "Edit Profile"),
-        SettingItem(R.drawable.baseline_people_24, "Friends"),
-        SettingItem(R.drawable.baseline_notifications_24, "Notifications"),
-        SettingItem(R.drawable.baseline_security_24, "Privacy & Security"),
-        SettingItem(R.drawable.baseline_settings_24, "App Settings"),
-        SettingItem(R.drawable.baseline_help_24, "Help & Support")
+            SettingItem(R.drawable.baseline_person_24, "Edit Profile"),
+            SettingItem(R.drawable.baseline_people_24, "Friends"),
+            SettingItem(R.drawable.baseline_notifications_24, "Notifications"),
+            SettingItem(R.drawable.baseline_security_24, "Privacy & Security"),
+            SettingItem(R.drawable.baseline_settings_24, "App Settings"),
+            SettingItem(R.drawable.baseline_help_24, "Help & Support")
         )
+
+        navItems.forEachIndexed { index, item ->
+            SettingItem(
+                icon = item.icon,
+                label = item.label,
+                onClick = { onSettingClick(index + 1) } // 1 = Edit Profile, etc.
+            )
+        }
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -123,15 +131,14 @@ fun ProfileScreen() {
     }
 }
 
-
 @Composable
-fun SettingItem(icon: Int, label: String) {
+fun SettingItem(icon: Int, label: String, onClick: () -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 10.dp)
             .background(Color(0xFFF8F5FF), RoundedCornerShape(16.dp))
-            .clickable { }
+            .clickable(onClick = onClick)
             .padding(18.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -168,7 +175,7 @@ fun SettingItemLogout(label: String) {
             .fillMaxWidth()
             .padding(vertical = 10.dp)
             .background(Color(0xFFF2EEFF), RoundedCornerShape(16.dp))
-            .clickable { }
+            .clickable { /* Handle logout */ }
             .padding(18.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -176,7 +183,7 @@ fun SettingItemLogout(label: String) {
         Icon(
             painter = painterResource(R.drawable.baseline_logout_24),
             contentDescription = null,
-            tint = Color.Black, // red color
+            tint = Color(0xFFD00000),
             modifier = Modifier.size(26.dp)
         )
 
@@ -189,30 +196,32 @@ fun SettingItemLogout(label: String) {
             color = Color(0xFFD00000)
         )
     }
+}
+
+@Composable
+fun ProfileSectionComposable() {
     var selectedIndex by remember { mutableStateOf(0) }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .padding()
     ) {
         when (selectedIndex) {
-            0 -> ProfileScreen()
+            0 -> ProfileScreen { index -> selectedIndex = index }
             1 -> EditProfileScreenComposable()
-//            2 -> Friends
-
-//            3 -> NotificationScreen()
+            // 2 -> FriendsScreen() // Add when ready
+            // 3 -> NotificationScreen() // Add when ready
             4 -> PrivacySecurityScreenComposable()
-//            5 -> AppSettingScreen()
+            // 5 -> AppSettingScreen() // Add when ready
             6 -> HelpSupportScreenComposable()
+            else -> ProfileScreen { index -> selectedIndex = index }
         }
     }
 }
 
-
 @Preview
 @Composable
-fun ProfilePreview(){
-    ProfileScreen()
+fun ProfilePreview() {
+    ProfileSectionComposable()
 }
