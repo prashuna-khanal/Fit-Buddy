@@ -2,10 +2,13 @@ package com.example.fit_buddy.view
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -71,9 +74,9 @@ fun FriendRequestsScreen(requests: List<com.example.fit_buddy.model.FriendReques
                 items(requests){
                     request ->
                     Row (
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
-                    ){
+                    ) {
 //                        viewing profile of sent request
                         AsyncImage(
                             model = request.profilePicUrl,
@@ -84,25 +87,38 @@ fun FriendRequestsScreen(requests: List<com.example.fit_buddy.model.FriendReques
                                 .clickable { onProfileClick(request.userId) },
                             contentScale = ContentScale.Crop
                         )
-                        Text(
-                            text = request.username,
-                            modifier = Modifier.weight(1f).padding(start = 12.dp),
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
+                            Text(
+                                text = request.username.ifEmpty { "Unkown User" },
+//                                modifier = Modifier.weight(1f).padding(start = 12.dp),
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 16.sp,
+                                color = Color.Black,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+
+                            )
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+
+
 //                        buttons
-                        Button(
-                            onClick = { onAccept(request.userId) },
-                            shape = RoundedCornerShape(8.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = confirmLavender)
-                        ) {
-                            Text("Confirm",color = Color.Black, fontSize = 12.sp)
-                        }
-                        Spacer(Modifier.width(8.dp))
+                            Button(
+                                onClick = { onAccept(request.userId) },
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = confirmLavender),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                                modifier = Modifier.height(36.dp)
+                            ) {
+                                Text("Confirm", color = Color.Black, fontSize = 12.sp)
+                            }
+                            Spacer(Modifier.width(4.dp))
 
-                        TextButton(onClick = { onDelete(request.userId) }) {
-                            Text("Delete", color = Color.Gray)
-                        }
+                            TextButton(onClick = { onDelete(request.userId) }) {
+                                Text("Delete", color = Color.Gray)
+                            }
 
+                        }
                     }
                 }
             }

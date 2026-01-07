@@ -28,6 +28,7 @@ import com.example.fit_buddy.ui.theme.*
 import com.example.fitbuddy.repository.PoseRepo
 import com.example.fitbuddy.view.AIScreen
 import com.example.fitbuddy.viewmodel.PoseViewModel
+import kotlinx.coroutines.delay
 
 class ExerciseActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,10 +48,117 @@ fun ExerciseActivityScreen() {
 
     // State to track if we should show AIScreen
     var showAIScreen by remember { mutableStateOf(false) }
+//    state variables for timer and showing time how much is done
+    var secondsElapsed by remember{ mutableIntStateOf(0)}
+    var isTimerRunning by remember { mutableStateOf(false) }
+    var showSummary by remember { mutableStateOf(false) }
+//    Pose dection to start timer
+    LaunchedEffect(poseViewModel.poseState) {
+        if(showAIScreen && poseViewModel.poseState!=null && !isTimerRunning){
+      isTimerRunning=true
+        }
+    }
+//    timer logic
+    LaunchedEffect(isTimerRunning) {
+        if(isTimerRunning){
+            while (true){
+                delay(1000L)
+                secondsElapsed++
+            }
+        }
+    }
+//    showing summary of time when completed button is clicked
+    if(showSummary){
+        AlertDialog(
+            onDismissRequest = {}, //no dismiss
+            confirmButton = {
+                Button(onClick = {
+                    showSummary=false
+                    showAIScreen=false //ensure it returns to activities/exerices
+                    secondsElapsed=0 //reset timer
+                },
+                    colors = ButtonDefaults.buttonColors(contentColor = lavender500),
+                    shape = RoundedCornerShape(12.dp)
+
+                    ) {
+                    Text("Back to Exercies", color = Color.White)
+                }
+            },
+            title = {
+                Text("Workout Complete!" , fontWeight = FontWeight.Bold, fontSize = 22.sp, color = textPrimary)
+            },
+            text = {
+                Column (modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally){
+                    Text("Total Time", color = textSecondary, fontSize = 14.sp)
+                    Spacer(modifier = Modifier.height(8.dp))
+//                  minutes: seconds  , one digit vaye 0 add garera dekhaune %d show integer valye ani 2 alsway show two digits eg; 02:05
+                    Text(text = "%02d:%02d".format(secondsElapsed / 60, secondsElapsed % 60),
+                        fontSize = 48.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = lavender500
+                        )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text("Great job keeping up with your goals!", color = textSecondary, fontSize = 14.sp)
+
+
+                }
+            },
+            shape = RoundedCornerShape(28.dp),
+            containerColor = Color.White
+        )
+    }
 
     if (showAIScreen) {
         // Show AIScreen with current exercise
-        AIScreen(viewModel = poseViewModel)
+        Box(modifier = Modifier.fillMaxSize()) {
+
+
+            AIScreen(viewModel = poseViewModel)
+//            let user know that time started
+            if (!isTimerRunning) {
+                Surface(
+                    color = Color.Black.copy(alpha = 0.6f),
+                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 100.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        "AI is waiting for you... Position your body to start!",
+                        color = Color.White,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+            } else {
+//                  small recording indicator or the live timer
+                Surface(
+                    color = Color.Green.copy(alpha = 0.7f),
+                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 100.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        "Workout Active: %02d:%02d".format(secondsElapsed / 60, secondsElapsed % 60),
+                        color = Color.White,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+            }
+//            button for complete
+            Button(onClick = {
+                isTimerRunning=false //stop counting
+                showSummary = true //show result once stopped
+            },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(end = 20.dp, bottom = 180.dp)
+                    .height(48.dp)
+                    .width(200.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+                shape = RoundedCornerShape(16.dp),
+                elevation = ButtonDefaults.buttonElevation(8.dp)
+            ) {
+                Text("Complete Workout :)", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            }
+        }
     } else {
         // Show Exercise List
         Column(
@@ -102,7 +210,10 @@ fun ExerciseActivityScreen() {
                             "Mountain Climbers" ->
                                 poseViewModel.setExerciseType(PoseViewModel.ExerciseType.MOUNTAIN_CLIMBER)
                         }
-                        showAIScreen = true
+//                        start timer when start now is clicked
+                        showAIScreen= true
+//                        isTimerRunning=true
+
                     }
 
                 )
