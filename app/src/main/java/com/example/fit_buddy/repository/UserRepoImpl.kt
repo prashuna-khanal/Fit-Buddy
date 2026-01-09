@@ -86,4 +86,52 @@ class UserRepoImpl : UserRepo {
     override fun getCurrentUserId(): String? {
         return auth.currentUser?.uid
     }
+
+    override fun deleteAccount(
+        userId: String,
+        callback: (Boolean, String) -> Unit
+    ) {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            callback(false, "User not logged in")
+            return
+        }
+
+        // 1️⃣ Delete from database
+        usersRef.child(userId).removeValue()
+            .addOnSuccessListener {
+
+                // 2️⃣ Delete auth account
+                currentUser.delete()
+                    .addOnSuccessListener {
+                        callback(true, "Account deleted successfully")
+                    }
+                    .addOnFailureListener {
+                        callback(false, it.message ?: "Failed to delete account")
+                    }
+            }
+            .addOnFailureListener {
+                callback(false, it.message ?: "Failed to remove user data")
+            }
+    }
+
+    override fun logout() {
+        auth.signOut()    }
+
+    override fun updateUserProfile(
+        userId: String,
+        userModel: UserModel,
+        callback: (Boolean, String) -> Unit
+    ) {
+        usersRef.child(userId)
+            .updateChildren(userModel.toMap())
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    callback(true, "Profile updated successfully")
+                } else {
+                    callback(false, task.exception?.message ?: "Update failed")
+                }
+            }
+    }
+
 }
