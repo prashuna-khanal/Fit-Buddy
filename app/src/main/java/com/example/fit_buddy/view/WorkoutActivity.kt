@@ -1,4 +1,4 @@
-package com.example.fit_buddy.view
+    package com.example.fit_buddy.view
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -51,7 +51,9 @@ import com.example.fitbuddy.repository.PoseRepo
 import com.example.fitbuddy.view.AIScreen
 import com.example.fitbuddy.viewmodel.PoseViewModel
 import com.example.fit_buddy.view.OtherUserProfileScreen
-class WorkoutActivity : ComponentActivity() {
+import java.time.LocalTime
+
+    class WorkoutActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -87,7 +89,11 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
        factory = FeedViewModelFactory(com.example.fit_buddy.repository.PostRepository(context),userRepo)
     )
 
+    val userId = userViewModel.getCurrentUserId()
 
+    val user by userViewModel
+        .getUserData(userId ?: "")
+        .collectAsState(initial = null)
     var selectedIndex by remember { mutableStateOf(0) }
     var cameraPermissionGranted by remember { mutableStateOf(false) }
 
@@ -178,7 +184,8 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
                 .padding(padding)
         ) {
             when (selectedIndex) {
-                0 -> WorkoutHomeScreen()
+                0 -> WorkoutHomeScreen(    userName = user?.fullName ?: "User"
+                )
 
 
 
@@ -227,7 +234,7 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
 }
 
 @Composable
-fun WorkoutHomeScreen() {
+fun WorkoutHomeScreen(userName: String) {
 
     Column(
         modifier = Modifier
@@ -236,7 +243,7 @@ fun WorkoutHomeScreen() {
             .verticalScroll(rememberScrollState())
     ) {
 
-        HeaderSection()
+        HeaderSection(userName = userName)
 
         Column(
             modifier = Modifier
@@ -253,63 +260,56 @@ fun WorkoutHomeScreen() {
     }
 }
 
-@Composable
-fun HeaderSection() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .height(240.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 20.dp, start = 20.dp, end = 20.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column {
-                Text("Good Evening", color = textMuted, fontSize = 18.sp, fontWeight = FontWeight.Medium)
-                Spacer(Modifier.height(10.dp))
-                Text("Sam", color = textPrimary, fontSize = 29.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(10.dp))
-                Text("Ready to crush your goals today?", color = textSecondary, fontSize = 16.sp)
-            }
-
-            Box(
-                modifier = Modifier
-                    .size(42.dp)
-                    .clip(CircleShape)
-                    .background(buttonLightGray),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Notifications,
-                    contentDescription = "Notifications",
-                    tint = iconNeutralDark
-                )
+    @Composable
+    fun HeaderSection(userName: String) {
+        val greeting = remember {
+            when (LocalTime.now().hour) {
+                in 5..11 -> "Good Morning"
+                in 12..16 -> "Good Afternoon"
+                else -> "Good Evening"
             }
         }
-
-        Spacer(Modifier.height(8.dp))
-
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                .background(Color.White)
+                .height(240.dp)
         ) {
-            StatCard("Calories", "420", R.drawable.icon_park_solid_fire,
-                Brush.verticalGradient(listOf(rose50, rose100)))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        greeting,
+                        fontSize = 18.sp,
+                        color = textMuted
+                    )
 
-            StatCard("Workouts", "2", R.drawable.heart,
-                Brush.verticalGradient(listOf(lavender50, lavender100)))
 
-            StatCard("Goal", "85%", R.drawable.octicon_goal_16,
-                Brush.verticalGradient(listOf(mint50, mint100)))
+                    Spacer(Modifier.height(10.dp))
+
+                    Text(
+                        userName,
+                        fontSize = 29.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = textPrimary
+                    )
+
+                    Spacer(Modifier.height(10.dp))
+
+                    Text(
+                        "Ready to crush your goals today?",
+                        fontSize = 16.sp,
+                        color = textSecondary
+                    )
+                }
+            }
         }
     }
-}
 
 @Composable
 fun StatCard(title: String, value: String, icon: Int, gradient: Brush) {

@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.fit_buddy.model.UserModel
 import com.example.fit_buddy.repository.UserRepo
+import kotlinx.coroutines.flow.Flow
 
 
 class UserViewModel(private val repository: UserRepo) : ViewModel() {
@@ -49,4 +50,30 @@ class UserViewModel(private val repository: UserRepo) : ViewModel() {
     fun clearError() {
         _error.value = null
     }
+    fun getCurrentUserId(): String? {
+        return repository.getCurrentUserId()
+    }
+
+    fun getUserData(userId: String): Flow<UserModel?> {
+        return repository.getUserData(userId)
+    }
+
+    fun updateUserProfile(
+        userId: String,
+        userModel: UserModel,
+        callback: (Boolean, String) -> Unit
+    ) {
+        repository.updateUserProfile(userId, userModel, callback)
+    }
+    fun deleteAccount(
+        userId: String,
+        callback: (Boolean, String) -> Unit
+    ) {
+        repository.deleteAccount(userId, callback)
+    }
+
+    fun logout() {
+        repository.logout()
+    }
+
 }

@@ -20,18 +20,39 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fit_buddy.R
+import com.example.fit_buddy.model.UserModel
 import com.example.fit_buddy.ui.theme.lavender400
+import com.example.fit_buddy.viewmodel.UserViewModel
 
 
 @Composable
-fun EditProfileScreenComposable() {
+fun EditProfileScreenComposable(
+    viewModel: UserViewModel = viewModel()
+) {
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    val userId = viewModel.getCurrentUserId()
 
     var name by remember { mutableStateOf("SAM") }
     var email by remember { mutableStateOf("sam@gmail.com") }
     var weight by remember{mutableStateOf("50kg")}
     var password by remember { mutableStateOf("password123") }
     var passwordVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(userId) {
+        if (userId != null) {
+            viewModel.getUserData(userId).collect { user ->
+                user?.let {
+                    name = it.fullName
+                    email = it.email
+                    weight = it.weight
+                }
+            }
+        }
+    }
+
 
     Column(
         modifier = Modifier
@@ -170,25 +191,93 @@ fun EditProfileScreenComposable() {
         Spacer(modifier = Modifier.height(30.dp))
 
         // UPDATE BUTTON
-        Button(
-            onClick = { /* Save profile */ },
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .height(52.dp),
-            shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1E1E1E)
-            )
+                .fillMaxSize()
+                .background(Color.White)
         ) {
-            Text(
-                text = "Update",
-                color = Color.White,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold
-            )
+
+            // UPDATE BUTTON
+            Button(
+                onClick = {
+                    if (userId == null) return@Button
+
+                    val updatedUser = UserModel(
+                        userId = userId,
+                        fullName = name,
+                        email = email,
+                        weight = weight
+                    )
+
+                    viewModel.updateUserProfile(userId, updatedUser) { success, msg ->
+                        // Toast / Snackbar if needed
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .height(52.dp),
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Text("Update")
+            }
         }
     }
+    Spacer(modifier = Modifier.height(16.dp))
+
+    OutlinedButton(
+        onClick = { showDeleteDialog = true },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .height(52.dp),
+        shape = RoundedCornerShape(14.dp),
+        colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = Color.Red
+        )
+    ) {
+        Text("Delete Account", fontWeight = FontWeight.Bold)
+    }
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = {
+                Text("Delete Account")
+            },
+            text = {
+                Text(
+                    "Are you sure you want to permanently delete your account? " +
+                            "This action cannot be undone."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+
+                        val userId = viewModel.getCurrentUserId() ?: return@TextButton
+
+                        viewModel.deleteAccount(userId) { success, msg ->
+                            if (success) {
+                                viewModel.logout()
+                                // 👉 navigate to Login screen here
+                            }
+                        }
+                    }
+                ) {
+                    Text("Delete", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDeleteDialog = false }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
 }
 
 @Composable
@@ -197,6 +286,7 @@ fun ProfileInputField(
     value: String,
     onValueChange: (String) -> Unit
 ) {
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -220,8 +310,8 @@ fun ProfileInputField(
         )
     }
 }
-@Preview
-@Composable
-fun EditProfileScreenPreview() {
-    EditProfileScreenComposable()
-}
+//@Preview
+//@Composable
+//fun EditProfileScreenPreview() {
+//    EditProfileScreenComposable(viewModel: UserViewModel)
+//}
