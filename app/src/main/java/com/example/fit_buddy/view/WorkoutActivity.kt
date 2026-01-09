@@ -39,7 +39,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.fit_buddy.AchievementScreen
+import com.example.fit_buddy.view.AchievementScreen
 import com.example.fit_buddy.R
 import com.example.fit_buddy.repository.UserRepoImpl
 //import androidx.core.app.ComponentActivity
@@ -219,7 +219,8 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
                     }
                 }
                 3 -> AchievementScreen()
-                4 -> ProfileScreen()
+                4 ->  ProfileSectionComposable()
+
             }
         }
     }

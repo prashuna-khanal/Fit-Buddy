@@ -1,27 +1,36 @@
-package com.example.fit_buddy
+package com.example.fit_buddy.view
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fit_buddy.ui.theme.*
+import com.example.fit_buddy.viewmodel.WorkoutViewModel
 
-//
 @Composable
 fun AchievementScreen() {
+    val workoutViewModel: WorkoutViewModel = viewModel()
+    val streakData by workoutViewModel.streakData.collectAsState(WorkoutViewModel.StreakData())
+    val graphData by workoutViewModel.graphData.collectAsState(WorkoutViewModel.GraphData())
+
     Scaffold(containerColor = backgroundLightLavender) { padding ->
 
         Column(
@@ -34,16 +43,11 @@ fun AchievementScreen() {
 
             Spacer(Modifier.height(16.dp))
 
-            Text(
-                text = "Achievements",
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Bold,
-                color = textPrimary
-            )
+            Text("Achievements", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = textPrimary)
 
             Spacer(Modifier.height(24.dp))
 
-            StreakCard()
+            StreakCard(streakData = streakData)
 
             Spacer(Modifier.height(26.dp))
 
@@ -55,12 +59,15 @@ fun AchievementScreen() {
 
             Spacer(Modifier.height(30.dp))
 
-            Text(
-                "Body Metrics",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = textPrimary
-            )
+            Text("Daily Workout Time (Last 30 Days)", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textPrimary)
+
+            Spacer(Modifier.height(16.dp))
+
+            SimpleBarChart(minutesList = graphData.minutes)
+
+            Spacer(Modifier.height(30.dp))
+
+            Text("Body Metrics", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textPrimary)
 
             Spacer(Modifier.height(18.dp))
 
@@ -68,12 +75,7 @@ fun AchievementScreen() {
 
             Spacer(Modifier.height(30.dp))
 
-            Text(
-                "AI Training Sessions",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = textPrimary
-            )
+            Text("AI Training Sessions", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textPrimary)
 
             Spacer(Modifier.height(16.dp))
 
@@ -86,46 +88,32 @@ fun AchievementScreen() {
     }
 }
 
-/* ================= STREAK ================= */
-
 @Composable
-fun StreakCard() {
+fun StreakCard(streakData: WorkoutViewModel.StreakData) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(28.dp))
-            .background(
-                Brush.verticalGradient(
-                    listOf(streakGradientStart, streakGradientEnd)
-                )
-            )
+            .background(Brush.verticalGradient(listOf(streakGradientStart, streakGradientEnd)))
             .padding(24.dp)
     ) {
         Column {
-
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {
-                    Text("7", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = backgroundWhite)
+                    Text("${streakData.currentStreak}", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = backgroundWhite)
                     Text("Day Streak", fontSize = 14.sp, color = backgroundWhite.copy(0.9f))
                 }
-
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("21", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = backgroundWhite)
+                    Text("${streakData.bestStreak}", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = backgroundWhite)
                     Text("Best Streak", fontSize = 13.sp, color = backgroundWhite.copy(0.9f))
                 }
             }
 
             Spacer(Modifier.height(20.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                listOf("Mon","Tue","Wed","Thu","Fri","Sat","Sun").forEach {
-                    DayCheck(it)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                streakData.last7Days.forEach { (day, checked) ->
+                    DayCheck(day = day, checked = checked)
                 }
             }
         }
@@ -133,7 +121,7 @@ fun StreakCard() {
 }
 
 @Composable
-fun DayCheck(day: String) {
+fun DayCheck(day: String, checked: Boolean) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
@@ -142,10 +130,55 @@ fun DayCheck(day: String) {
                 .background(backgroundWhite),
             contentAlignment = Alignment.Center
         ) {
-            Text("✓", color = rose500, fontWeight = FontWeight.Bold)
+            if (checked) {
+                Text("✓", color = rose500, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            }
         }
         Spacer(Modifier.height(6.dp))
         Text(day, fontSize = 11.sp, color = backgroundWhite)
+    }
+}
+
+@Composable
+fun SimpleBarChart(minutesList: List<Int>) {
+    if (minutesList.isEmpty() || minutesList.all { it == 0 }) {
+        Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+            Text("No workout data yet", color = textSecondary)
+        }
+        return
+    }
+
+    val maxMinutes = minutesList.maxOrNull()?.coerceAtLeast(1) ?: 1
+    val barWidth = 12.dp
+    val spacing = 6.dp
+
+    Canvas(modifier = Modifier.fillMaxWidth().height(200.dp).padding(horizontal = 16.dp)) {
+        val canvasWidth = size.width
+        val canvasHeight = size.height
+        val barWidthPx = barWidth.toPx()
+        val spacingPx = spacing.toPx()
+        val totalBarsWidth = minutesList.size * barWidthPx + (minutesList.size - 1) * spacingPx
+        val startX = (canvasWidth - totalBarsWidth) / 2
+
+        minutesList.forEachIndexed { index, minutes ->
+            val barHeight = (minutes.toFloat() / maxMinutes) * (canvasHeight * 0.8f)
+            val x = startX + index * (barWidthPx + spacingPx)
+
+            drawRoundRect(
+                color = lavender500,
+                topLeft = Offset(x, canvasHeight - barHeight),
+                size = Size(barWidthPx, barHeight),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(8f, 8f)
+            )
+        }
+
+        // X-axis line
+        drawLine(
+            color = textSecondary.copy(0.3f),
+            start = Offset(0f, canvasHeight),
+            end = Offset(canvasWidth, canvasHeight),
+            strokeWidth = 2f
+        )
     }
 }
 
