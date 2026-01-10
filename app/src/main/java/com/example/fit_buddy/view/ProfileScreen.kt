@@ -1,28 +1,11 @@
 package com.example.fit_buddy.view
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,11 +17,40 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fit_buddy.R
 import com.example.fit_buddy.ui.theme.backgroundLightLavender
-import com.example.fitbuddy.view.AIScreen
-
+import com.example.fit_buddy.viewmodel.FeedViewModel
 
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(viewModel: FeedViewModel) {
+    var selectedIndex by remember { mutableStateOf(0) }
+
+
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(backgroundLightLavender)
+    ) {
+        when (selectedIndex) {
+            0 -> ProfileMainScreen {index -> selectedIndex = index}
+            1 -> EditProfileScreenComposable ()
+         2 -> FriendListScreen (
+             viewModel = viewModel,onBack ={selectedIndex =0},onFriendClick={friendId -> viewModel.navigateToFriendProfile(friendId)
+             selectedIndex =7}
+         )
+
+//            3 -> NotificationScreenComposable ()
+            3 -> PrivacySecurityScreenComposable ()
+//            4 -> AppSettingScreenComposable ()
+            5 -> HelpSupportScreenComposable()
+            7-> OtherUserProfileScreen(userId = viewModel.selectedFriendId, viewModel = viewModel, onBack = {selectedIndex =2})
+        }
+    }
+}
+
+@Composable
+fun ProfileMainScreen(
+    onNavigate: (Int) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -47,39 +59,17 @@ fun ProfileScreen() {
             .padding(20.dp)
     ) {
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(Modifier.height(20.dp))
 
-        // HEADER
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.baseline_arrow_back_ios_24),
-                contentDescription = "Back",
-                tint = Color.Black,
-                modifier = Modifier
-                    .size(28.dp)
-                    .clickable { }
-            )
+        Text(
+            "Profile",
+            fontSize = 26.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
 
-            Box(
-                modifier = Modifier.weight(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "Profile",
-                    fontSize = 26.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+        Spacer(Modifier.height(25.dp))
 
-            Spacer(modifier = Modifier.width(28.dp))
-        }
-
-        Spacer(modifier = Modifier.height(25.dp))
-
-        // PROFILE CARD
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -95,7 +85,7 @@ fun ProfileScreen() {
                     .clip(RoundedCornerShape(14.dp))
             )
 
-            Spacer(modifier = Modifier.width(20.dp))
+            Spacer(Modifier.width(20.dp))
 
             Column {
                 Text("Sam", fontSize = 20.sp, fontWeight = FontWeight.Bold)
@@ -104,115 +94,86 @@ fun ProfileScreen() {
             }
         }
 
-        Spacer(modifier = Modifier.height(30.dp))
+        Spacer(Modifier.height(30.dp))
 
-        // SETTINGS
-        val navItems = listOf(
-        SettingItem(R.drawable.baseline_person_24, "Edit Profile"),
-        SettingItem(R.drawable.baseline_people_24, "Friends"),
-        SettingItem(R.drawable.baseline_notifications_24, "Notifications"),
-        SettingItem(R.drawable.baseline_security_24, "Privacy & Security"),
-        SettingItem(R.drawable.baseline_settings_24, "App Settings"),
-        SettingItem(R.drawable.baseline_help_24, "Help & Support")
-        )
+        ProfileItem(R.drawable.baseline_person_24, "Edit Profile") { onNavigate(1) }
+        ProfileItem(R.drawable.baseline_people_24, "Friends") { onNavigate(2) }
+        ProfileItem(R.drawable.baseline_security_24, "Privacy & Security") { onNavigate(3) }
+        ProfileItem(R.drawable.baseline_settings_24, "App Settings") { onNavigate(4) }
+        ProfileItem(R.drawable.baseline_help_24, "Help & Support") { onNavigate(5) }
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(Modifier.height(20.dp))
 
-        SettingItemLogout("Logout")
-        Spacer(modifier = Modifier.height(40.dp))
+        LogoutItem {
+            // logout logic
+        }
     }
 }
 
-
 @Composable
-fun SettingItem(icon: Int, label: String) {
+fun ProfileItem(
+    icon: Int,
+    label: String,
+    onClick: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 10.dp)
             .background(Color(0xFFF8F5FF), RoundedCornerShape(16.dp))
-            .clickable { }
+            .clickable { onClick() }
             .padding(18.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         Icon(
             painter = painterResource(icon),
             contentDescription = null,
-            tint = Color.Black,
             modifier = Modifier.size(26.dp)
         )
 
-        Spacer(modifier = Modifier.width(18.dp))
+        Spacer(Modifier.width(18.dp))
 
-        Text(
-            text = label,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium
-        )
+        Text(label, fontSize = 16.sp, fontWeight = FontWeight.Medium)
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(Modifier.weight(1f))
 
         Icon(
             painter = painterResource(R.drawable.baseline_arrow_forward_ios_24),
-            contentDescription = null,
-            tint = Color.Black
+            contentDescription = null
         )
     }
 }
 
 @Composable
-fun SettingItemLogout(label: String) {
+fun LogoutItem(onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 10.dp)
             .background(Color(0xFFF2EEFF), RoundedCornerShape(16.dp))
-            .clickable { }
+            .clickable { onClick() }
             .padding(18.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         Icon(
             painter = painterResource(R.drawable.baseline_logout_24),
             contentDescription = null,
-            tint = Color.Black, // red color
             modifier = Modifier.size(26.dp)
         )
 
-        Spacer(modifier = Modifier.width(18.dp))
+        Spacer(Modifier.width(18.dp))
 
         Text(
-            text = label,
+            "Logout",
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFFD00000)
         )
     }
-    var selectedIndex by remember { mutableStateOf(0) }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding()
-    ) {
-        when (selectedIndex) {
-            0 -> ProfileScreen()
-            1 -> EditProfileScreenComposable()
-//            2 -> Friends
-
-//            3 -> NotificationScreen()
-            4 -> PrivacySecurityScreenComposable()
-//            5 -> AppSettingScreen()
-            6 -> HelpSupportScreenComposable()
-        }
-    }
 }
-
 
 @Preview
 @Composable
 fun ProfilePreview(){
-    ProfileScreen()
+//    ProfileScreen()
 }

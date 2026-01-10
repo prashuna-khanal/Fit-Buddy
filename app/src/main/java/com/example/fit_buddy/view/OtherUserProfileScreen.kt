@@ -52,7 +52,8 @@ fun OtherUserProfileScreen(
     viewModel: com.example.fit_buddy.viewmodel.FeedViewModel,
     onBack: () -> Unit
 ) {
-    // 1. Observe the target user's data and the request status
+
+    //observe the target user's data and the request status
     val allUsers by viewModel.allUsers.observeAsState(emptyList())
     val user = allUsers.find { it.userId == userId }
 
