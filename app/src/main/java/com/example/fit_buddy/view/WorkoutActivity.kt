@@ -202,8 +202,16 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
                         val requests by feedViewModel.friendRequests.observeAsState(emptyList())
                         FriendRequestsScreen(
                             requests = requests,
-                            onAccept = { id -> feedViewModel.respondToRequest(id, true) },
-                            onDelete = { id -> feedViewModel.respondToRequest(id, false) },
+                            onAccept = { id ->
+                                //  full request object that matches ID
+                                val requestObj = requests.find { it.userId == id }
+                                requestObj?.let { feedViewModel.respondToRequest(it, true) }
+                            },
+                            onDelete = { id ->
+
+                                val requestObj = requests.find { it.userId == id }
+                                requestObj?.let { feedViewModel.respondToRequest(it, false) }
+                            },
                             onProfileClick = { id -> selectedProfileId = id },
                             onBack = { showRequestsScreen = false }
                         )
@@ -226,7 +234,8 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
                     }
                 }
                 3 -> AchievementScreen()
-                4 ->  ProfileSectionComposable()
+
+                4 -> ProfileScreen(viewModel=feedViewModel)
 
             }
         }

@@ -27,18 +27,41 @@ class UserRepoImpl : UserRepo {
                 }
             }
     }
-
     override fun register(email: String, password: String, callback: (Boolean, String, String) -> Unit) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    val userId = auth.currentUser?.uid ?: ""
-                    callback(true, "Account Created Successfully", userId)
+                    val firebaseUid = auth.currentUser?.uid ?: ""
+
+                    //  firebaseUid into the UserModel before saving
+                    val newUser = UserModel(
+                        userId = firebaseUid,
+                        email = email,
+                        fullName = " Name Variable"
+                    )
+
+                    // save to users node using the firebaseUid as the key
+                    addUserToDatabase(firebaseUid, newUser) { success, msg ->
+                        callback(success, msg, firebaseUid)
+                    }
                 } else {
-                    callback(false, task.exception?.message ?: "Registration Failed", "")
+                    callback(false, task.exception?.message ?: "Failed", "")
                 }
             }
     }
+//
+//    override fun register(email: String, password: String, callback: (Boolean, String, String) -> Unit) {
+//        auth.createUserWithEmailAndPassword(email, password)
+//            .addOnCompleteListener { task ->
+//                if (task.isSuccessful) {
+//                    val userId = auth.currentUser?.uid ?: ""
+//
+//                    callback(true, "Account Created Successfully", userId)
+//                } else {
+//                    callback(false, task.exception?.message ?: "Registration Failed", "")
+//                }
+//            }
+//    }
 
     override fun addUserToDatabase(userId: String, userModel: UserModel, callback: (Boolean, String) -> Unit) {
 

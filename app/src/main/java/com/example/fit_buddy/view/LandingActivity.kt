@@ -16,10 +16,12 @@ class LandingActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // auto login if user registered in firebase
+        // auto login if user registered in firebase5
 //        val currentUser = FirebaseAuth.getInstance().currentUser
 //        if (currentUser != null) {
-//            startActivity(Intent(this, WorkoutActivity::class.java))
+////            ensure email is verified
+//            val intent = Intent(this, WorkoutActivity::class.java)
+//            startActivity(intent)
 //            finish()
 //            return
 //        }

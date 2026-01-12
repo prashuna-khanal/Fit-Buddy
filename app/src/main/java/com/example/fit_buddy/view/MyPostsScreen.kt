@@ -137,11 +137,12 @@ fun MyPostsScreen(
                             modifier = Modifier.fillMaxWidth(),
                             onClick = {
                                 selectedUri?.let {
-                                    viewModel.sharePost(it, caption, myUsername)
-                                    // reset local state after triggering upload
+
+                                    viewModel.sharePost(it, caption)
                                     caption = ""
                                     selectedUri = null
                                 }
+
                             },
                             enabled = selectedUri != null && !viewModel.isUploading
                         ) {
