@@ -101,6 +101,8 @@ fun StreakCard() {
             )
             .padding(24.dp)
     ) {
+
+
         Column {
 
             Row(
