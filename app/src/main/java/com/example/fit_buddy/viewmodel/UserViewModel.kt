@@ -1,5 +1,6 @@
 package com.example.fit_buddy.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -7,15 +8,40 @@ import com.example.fit_buddy.model.UserModel
 import com.example.fit_buddy.repository.UserRepo
 
 
-class UserViewModel(private val repository: UserRepo) : ViewModel() {
+class UserViewModel(private val repository: UserRepo,context: Context) : ViewModel() {
 
+
+
+    private val sharedPreferences = context.getSharedPreferences("fit_buddy_prefs", Context.MODE_PRIVATE)
     // LiveData to observe changes
     private val _loading = MutableLiveData<Boolean>(false)
     val loading: LiveData<Boolean> get() = _loading
 
     private val _error = MutableLiveData<String?>(null)
     val error: LiveData<String?> get() = _error
+//
+    private val _workoutMinutes = MutableLiveData<Map<String, Int>>(loadWorkoutData())
+    val workoutMinutes: LiveData<Map<String, Int>> get() = _workoutMinutes
 
+    fun updateWorkoutTime(day: String, minutes: Int) {
+        val currentMap = _workoutMinutes.value?.toMutableMap() ?: mutableMapOf()
+        val totalMinutes = (currentMap[day] ?: 0) + minutes
+        currentMap[day] = totalMinutes
+        _workoutMinutes.value = currentMap
+//        save to storage
+        saveWorkoutData(day,totalMinutes)
+    }
+    private fun saveWorkoutData(day: String, totalMinutes: Int) {
+        sharedPreferences.edit().putInt(day, totalMinutes).apply()
+    }
+    private fun loadWorkoutData(): Map<String, Int> {
+        val days = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+        val savedMap = mutableMapOf<String, Int>()
+        days.forEach { day ->
+            savedMap[day] = sharedPreferences.getInt(day, 0)
+        }
+        return savedMap
+    }
 
     fun register(email: String, pass: String, callback: (Boolean, String, String) -> Unit) {
         _loading.value = true
