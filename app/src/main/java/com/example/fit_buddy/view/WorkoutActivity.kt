@@ -61,7 +61,7 @@ class WorkoutActivity : ComponentActivity() {
             val userRepo = UserRepoImpl()
             val viewModel: UserViewModel = viewModel(factory = object : androidx.lifecycle.ViewModelProvider.Factory {
                 override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                    return UserViewModel(userRepo) as T
+                    return UserViewModel(userRepo,this@WorkoutActivity) as T
                 }
             })
 
@@ -90,7 +90,13 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
 
     var selectedIndex by remember { mutableStateOf(0) }
     var cameraPermissionGranted by remember { mutableStateOf(false) }
-
+//    history of weekly report
+    var showHistorySheet by remember { mutableStateOf(false) }
+    if (showHistorySheet) {
+        WorkoutHistorySheet(userViewModel) {
+            showHistorySheet = false
+        }
+    }
     // Camera permission launcher
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -104,6 +110,8 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }
+
+
 
     // Initialize ViewModel only after permission granted
     val viewModel: PoseViewModel? = remember(cameraPermissionGranted) {
@@ -178,7 +186,7 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
                 .padding(padding)
         ) {
             when (selectedIndex) {
-                0 -> WorkoutHomeScreen()
+                0 -> WorkoutHomeScreen(userViewModel=userViewModel, onSeeAllClick = {showHistorySheet=true})
 
 
 
@@ -219,7 +227,7 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
                 2 -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         if (cameraPermissionGranted && viewModel != null) {
-                            ExerciseActivityScreen()
+                            ExerciseActivityScreen(userViewModel)
 
                         } else {
                             Text("Camera permission required", color = Color.Gray)
@@ -234,7 +242,7 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
 }
 
 @Composable
-fun WorkoutHomeScreen() {
+fun WorkoutHomeScreen(userViewModel: UserViewModel,onSeeAllClick: () -> Unit) {
 
     Column(
         modifier = Modifier
@@ -253,9 +261,9 @@ fun WorkoutHomeScreen() {
             Spacer(Modifier.height(17.dp))
             AICoachCard()
             Spacer(Modifier.height(17.dp))
-            WeeklyActivityCard()
+            WeeklyActivityCard(userViewModel,onSeeAllClick = onSeeAllClick)
             Spacer(Modifier.height(18.dp))
-            WorkoutListSection()
+            WorkoutListSection(onSeeAllClick = onSeeAllClick)
         }
     }
 }
@@ -406,7 +414,7 @@ fun AICoachCard() {
 }
 
 @Composable
-fun WeeklyActivityCard() {
+fun WeeklyActivityCard(userViewModel: UserViewModel,onSeeAllClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -419,26 +427,45 @@ fun WeeklyActivityCard() {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text("Weekly Activity", color = textPrimary, fontWeight = FontWeight.Medium, fontSize = 19.sp)
-            Text("View All", color = lavender600)
+            Text("View All",
+                modifier = Modifier.clickable{
+                    onSeeAllClick()
+                },
+                color = lavender600,
+                )
         }
 
         Spacer(Modifier.height(20.dp))
-        WeeklyBars()
+        WeeklyBars(userViewModel)
     }
 }
 
 @Composable
-fun WeeklyBars() {
+fun WeeklyBars(userViewModel: UserViewModel) {
     val maxHeightDp = 160.dp
     val fillPercents = listOf(0.5f, 0.75f, 1.0f, 0.7f, 0.8f, 0.9f, 0.6f)
-    val days = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+    val days = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+    val dailyStats by userViewModel.workoutMinutes.observeAsState(emptyMap())
 
     Row(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.Bottom
     ) {
-        days.forEachIndexed { index, day ->
+        days.forEach {  dayLabel ->
+            val minutes = dailyStats[dayLabel]?: 0
+            val barColor = when{
+                minutes >=15 -> lavender400
+                minutes > 0 -> Color(0xFF81C784)
+                else -> buttonLightGray
+            }
+            val barHeight = when {
+                minutes >= 15 -> maxHeightDp
+                minutes > 0 -> (maxHeightDp.value * 0.5f).dp // Half height for green
+                else -> 20.dp
+            }
+
+
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
                 Box(
@@ -457,14 +484,14 @@ fun WeeklyBars() {
                     Box(
                         modifier = Modifier
                             .width(28.dp)
-                            .height((maxHeightDp.value * fillPercents[index]).dp)
+                            .height(barHeight)
                             .clip(RoundedCornerShape(20.dp))
-                            .background(Brush.verticalGradient(listOf(lavender400, lavender300)))
+                            .background(barColor)
                     )
                 }
 
                 Spacer(Modifier.height(8.dp))
-                Text(day, color = textMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(dayLabel, color = if (minutes >= 15) lavender500 else textMuted, fontSize = 12.sp, fontWeight = if (minutes >= 15) FontWeight.Bold else FontWeight.Normal)
             }
         }
     }
@@ -594,7 +621,7 @@ fun WorkoutCard(
 }
 
 @Composable
-fun WorkoutListSection() {
+fun WorkoutListSection(onSeeAllClick: () -> Unit) {
     val context = LocalContext.current
 
     Column(
@@ -623,6 +650,7 @@ fun WorkoutListSection() {
                 modifier = Modifier.clickable {
                     context.startActivity(Intent(context, ExerciseActivity::class.java))
                 }
+
             )
         }
 
@@ -654,12 +682,13 @@ fun WorkoutListSection() {
 fun PreviewWorkoutScreen() {
     val navController = rememberNavController()
     val userRepo = UserRepoImpl()
+    val context = LocalContext.current
 
 //     ViewModel requirements
     val mockViewModel: UserViewModel = viewModel(
         factory = object : androidx.lifecycle.ViewModelProvider.Factory {
             override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                return UserViewModel(userRepo) as T
+                return UserViewModel(userRepo,context) as T
             }
         }
     )
@@ -668,5 +697,98 @@ fun PreviewWorkoutScreen() {
         navController = navController,
         userViewModel = mockViewModel
     )
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun WorkoutHistorySheet(
+    userViewModel: UserViewModel,
+    onDismiss: () -> Unit
+) {
+    val dailyStats by userViewModel.workoutMinutes.observeAsState(emptyMap())
+    val sheetState = rememberModalBottomSheetState()
+    val daysOfWeek = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = Color.White,
+        dragHandle = { BottomSheetDefaults.DragHandle(color = lavender500) }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 40.dp)
+        ) {
+            // Header with Total
+            val totalMinutes = dailyStats.values.sum()
+            if (totalMinutes == 0) { // Check if sum is zero instead of map being empty
+                Box(Modifier.fillMaxWidth().height(150.dp), contentAlignment = Alignment.Center) {
+                    Text("No activity recorded this week yet!", color = textMuted)
+                }
+            }else{
+
+            Text("Activity History", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = textPrimary)
+            Text("Total this week: $totalMinutes mins", color = lavender600, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                daysOfWeek.forEach { day ->
+                    val mins = dailyStats[day] ?: 0 // Use 0 if the day isn't in the map yet
+                    HistoryRow(day, mins)
+                }
+            }
+            }
+            }
+        }
+    }
+
+
+@Composable
+fun HistoryRow(day: String, minutes: Int) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(backgroundLightLavender)
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Day Label
+        Text(
+            text = day,
+            modifier = Modifier.width(45.dp),
+            fontWeight = FontWeight.Bold,
+            color = textPrimary
+        )
+
+        // The "Screen Time" Style Progress Bar
+        Box(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
+            // Track
+            Box(Modifier.fillMaxWidth().height(8.dp).clip(CircleShape).background(Color.LightGray.copy(0.3f)))
+
+            // Progress (Goal is 30 mins for full bar)
+            val progressWidth = (minutes / 30f).coerceIn(0.05f, 1f)
+            Box(
+                Modifier
+                    .fillMaxWidth(progressWidth)
+                    .height(8.dp)
+                    .clip(CircleShape)
+                    .background(if (minutes >= 15) lavender400 else Color(0xFF81C784))
+            )
+        }
+
+        // Minutes Label
+        Text(
+            text = "$minutes min",
+            fontWeight = FontWeight.Bold,
+            color = textSecondary,
+            fontSize = 14.sp
+        )
+    }
 }
 
