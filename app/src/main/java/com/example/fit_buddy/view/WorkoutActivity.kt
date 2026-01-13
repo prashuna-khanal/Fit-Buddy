@@ -3,6 +3,9 @@ package com.example.fit_buddy.view
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
+
+import androidx.compose.foundation.ExperimentalFoundationApi
+import kotlinx.coroutines.delay
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -12,6 +15,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -41,6 +46,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.fit_buddy.AchievementScreen
 import com.example.fit_buddy.R
+import com.example.fit_buddy.model.FeaturedWorkout
 import com.example.fit_buddy.repository.UserRepoImpl
 //import androidx.core.app.ComponentActivity
 import com.example.fit_buddy.ui.theme.*
@@ -619,62 +625,149 @@ fun WorkoutCard(
         }
     }
 }
-
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WorkoutListSection(onSeeAllClick: () -> Unit) {
     val context = LocalContext.current
+
+    // images and exercises
+    val featuredWorkouts = listOf(
+        FeaturedWorkout("Full Body HIT", "Intermediate", "25 min", "320 cal", R.drawable.workout_1),
+        FeaturedWorkout("Core Strength", "Beginner", "18 min", "210 cal", R.drawable.workout_2),
+        FeaturedWorkout("Upper Body Blast", "Advanced", "30 min", "400 cal", R.drawable.workout3),
+        FeaturedWorkout("Leg Day Pro", "Intermediate", "22 min", "350 cal", R.drawable.workout_4),
+        FeaturedWorkout("Yoga Recovery", "Beginner", "15 min", "100 cal", R.drawable.workout_5)
+    )
+
+
+    val pagerState = rememberPagerState(
+        initialPage = 0,
+        pageCount = { featuredWorkouts.size }
+    )
+    //autoscroll Logic (3-second intervals)
+    LaunchedEffect(Unit) {
+        while(true) {
+            delay(3000)
+            if (!pagerState.isScrollInProgress) {
+                val nextPage = (pagerState.currentPage + 1) % featuredWorkouts.size
+                pagerState.animateScrollToPage(nextPage)
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
     ) {
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                "Recommended",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = textPrimary
-            )
-
+            Text("Recommended", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = textPrimary)
             Text(
                 "See All",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 color = lavender600,
-                modifier = Modifier.clickable {
-                    context.startActivity(Intent(context, ExerciseActivity::class.java))
-                }
-
+                modifier = Modifier.clickable { onSeeAllClick() }
             )
         }
 
         Spacer(Modifier.height(16.dp))
 
-        WorkoutCard(
-            title = "Full Body HIT",
-            level = "Intermediate",
-            duration = "25 min",
-            calories = "320 cal",
-            image = R.drawable.workout_1
-        )
+        // Carousel (HorizontalPager)
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxWidth(),
+            pageSpacing = 16.dp,
+            contentPadding = PaddingValues(horizontal = 0.dp)
+        ) { page ->
+            val workout = featuredWorkouts[page]
+            WorkoutCard(
+                title = workout.title,
+                level = workout.level,
+                duration = workout.duration,
+                calories = workout.calories,
+                image = workout.image
+            )
+        }
 
-        Spacer(Modifier.height(16.dp))
-
-        WorkoutCard(
-            title = "Core Strength",
-            level = "Beginner",
-            duration = "18 min",
-            calories = "210 cal",
-            image = R.drawable.workout_2
-        )
+        // page indicators
+        Row(
+            Modifier.fillMaxWidth().padding(top = 12.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            repeat(featuredWorkouts.size) { iteration ->
+                val color = if (pagerState.currentPage == iteration) lavender500 else Color.LightGray.copy(alpha = 0.5f)
+                Box(
+                    modifier = Modifier
+                        .padding(3.dp)
+                        .clip(CircleShape)
+                        .background(color)
+                        .size(if (pagerState.currentPage == iteration) 10.dp else 7.dp)
+                )
+            }
+        }
     }
 }
+//
+//@Composable
+//fun WorkoutListSection(onSeeAllClick: () -> Unit) {
+//    val context = LocalContext.current
+//
+//    Column(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .padding(horizontal = 20.dp)
+//    ) {
+//
+//        Row(
+//            modifier = Modifier.fillMaxWidth(),
+//            horizontalArrangement = Arrangement.SpaceBetween,
+//            verticalAlignment = Alignment.CenterVertically
+//        ) {
+//            Text(
+//                "Recommended",
+//                fontSize = 22.sp,
+//                fontWeight = FontWeight.Bold,
+//                color = textPrimary
+//            )
+//
+//            Text(
+//                "See All",
+//                fontSize = 16.sp,
+//                fontWeight = FontWeight.Medium,
+//                color = lavender600,
+//                modifier = Modifier.clickable {
+//                    context.startActivity(Intent(context, ExerciseActivity::class.java))
+//                }
+//
+//            )
+//        }
+//
+//        Spacer(Modifier.height(16.dp))
+//
+//        WorkoutCard(
+//            title = "Full Body HIT",
+//            level = "Intermediate",
+//            duration = "25 min",
+//            calories = "320 cal",
+//            image = R.drawable.workout_1
+//        )
+//
+//        Spacer(Modifier.height(16.dp))
+//
+//        WorkoutCard(
+//            title = "Core Strength",
+//            level = "Beginner",
+//            duration = "18 min",
+//            calories = "210 cal",
+//            image = R.drawable.workout_2
+//        )
+//    }
+//}
 
 
 @Preview(showBackground = true)

@@ -149,7 +149,7 @@ fun ExerciseActivityScreen(userViewModel: UserViewModel) {
 //                  small recording indicator or the live timer
                 Surface(
                     color = Color.Green.copy(alpha = 0.7f),
-                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 100.dp),
+                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 60.dp),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
