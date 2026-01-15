@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import com.example.fit_buddy.model.UserModel
 import com.example.fit_buddy.repository.UserRepo
 
@@ -22,6 +23,16 @@ class UserViewModel(private val repository: UserRepo,context: Context) : ViewMod
 //
     private val _workoutMinutes = MutableLiveData<Map<String, Int>>(loadWorkoutData())
     val workoutMinutes: LiveData<Map<String, Int>> get() = _workoutMinutes
+
+    private val currentUserId = repository.getCurrentUserId()
+
+    //  automatically fetch user data if ID exists
+
+    val user: LiveData<UserModel?> = if (currentUserId != null) {
+        repository.getUserData(currentUserId).asLiveData()
+    } else {
+        MutableLiveData(null)
+    }
 
     fun updateWorkoutTime(day: String, minutes: Int) {
         val currentMap = _workoutMinutes.value?.toMutableMap() ?: mutableMapOf()
