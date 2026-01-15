@@ -84,8 +84,10 @@ data class NavItem(val icon: Int, val label: String)
 @Composable
 
 fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
-
-    val userRepo = com.example.fit_buddy.repository.UserRepoImpl() // instance
+    val userProfile by userViewModel.user.observeAsState()
+//    if real user not fetched
+    val firstName = userProfile?.fullName?.split(" ")?.firstOrNull() ?: "Buddy"
+    val userRepo = com.example.fit_buddy.repository.UserRepoImpl()
     var showRequestsScreen by remember { mutableStateOf(false) }
     var selectedProfileId by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
@@ -192,7 +194,7 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
                 .padding(padding)
         ) {
             when (selectedIndex) {
-                0 -> WorkoutHomeScreen(userViewModel=userViewModel, onSeeAllClick = {showHistorySheet=true})
+                0 -> WorkoutHomeScreen(userViewModel=userViewModel, userName = firstName, onSeeAllClick = {showHistorySheet=true})
 
 
 
@@ -248,7 +250,8 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
 }
 
 @Composable
-fun WorkoutHomeScreen(userViewModel: UserViewModel,onSeeAllClick: () -> Unit) {
+fun WorkoutHomeScreen(userViewModel: UserViewModel,userName: String,onSeeAllClick: () -> Unit) {
+
 
     Column(
         modifier = Modifier
@@ -257,8 +260,7 @@ fun WorkoutHomeScreen(userViewModel: UserViewModel,onSeeAllClick: () -> Unit) {
             .verticalScroll(rememberScrollState())
     ) {
 
-        HeaderSection()
-
+        HeaderSection(userName = userName)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -275,27 +277,36 @@ fun WorkoutHomeScreen(userViewModel: UserViewModel,onSeeAllClick: () -> Unit) {
 }
 
 @Composable
-fun HeaderSection() {
+fun HeaderSection(userName: String) {
+    val greeting = getGreeting()
+    val subtitle = when(greeting){
+        "Good Morning ☀️" -> "Time to kickstart your day!"
+        "Good Afternoon 🌤️" -> "Keep the momentum going!"
+        "Good Evening 🌅" -> "Ready to crush your goal today?"
+        else -> "Finish the day strong!"
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
-            .height(240.dp)
+            .padding(bottom = 16.dp)
     ) {
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 20.dp, start = 20.dp, end = 20.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
+
             Column {
-                Text("Good Evening", color = textMuted, fontSize = 18.sp, fontWeight = FontWeight.Medium)
-                Spacer(Modifier.height(10.dp))
-                Text("Sam", color = textPrimary, fontSize = 29.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(10.dp))
-                Text("Ready to crush your goals today?", color = textSecondary, fontSize = 16.sp)
+                Text(text = greeting, color = textMuted, fontSize = 18.sp, fontWeight = FontWeight.Medium)
+                Text(text = userName, color = textPrimary, fontSize = 29.sp, fontWeight = FontWeight.Bold)
+                Text(text = subtitle, color = textSecondary, fontSize = 16.sp)
             }
+
 
             Box(
                 modifier = Modifier
@@ -312,7 +323,7 @@ fun HeaderSection() {
             }
         }
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(20.dp))
 
         Row(
             modifier = Modifier
@@ -329,6 +340,17 @@ fun HeaderSection() {
             StatCard("Goal", "85%", R.drawable.octicon_goal_16,
                 Brush.verticalGradient(listOf(mint50, mint100)))
         }
+    }
+}
+
+
+private fun getGreeting(): String {
+    val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+    return when (hour) {
+        in 0..11 -> "Good Morning ☀️"
+        in 12..16 -> "Good Afternoon 🌤️"
+        in 17..20 -> "Good Evening 🌅"
+        else -> "Good Night 🌙"
     }
 }
 
@@ -712,62 +734,7 @@ fun WorkoutListSection(onSeeAllClick: () -> Unit) {
         }
     }
 }
-//
-//@Composable
-//fun WorkoutListSection(onSeeAllClick: () -> Unit) {
-//    val context = LocalContext.current
-//
-//    Column(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .padding(horizontal = 20.dp)
-//    ) {
-//
-//        Row(
-//            modifier = Modifier.fillMaxWidth(),
-//            horizontalArrangement = Arrangement.SpaceBetween,
-//            verticalAlignment = Alignment.CenterVertically
-//        ) {
-//            Text(
-//                "Recommended",
-//                fontSize = 22.sp,
-//                fontWeight = FontWeight.Bold,
-//                color = textPrimary
-//            )
-//
-//            Text(
-//                "See All",
-//                fontSize = 16.sp,
-//                fontWeight = FontWeight.Medium,
-//                color = lavender600,
-//                modifier = Modifier.clickable {
-//                    context.startActivity(Intent(context, ExerciseActivity::class.java))
-//                }
-//
-//            )
-//        }
-//
-//        Spacer(Modifier.height(16.dp))
-//
-//        WorkoutCard(
-//            title = "Full Body HIT",
-//            level = "Intermediate",
-//            duration = "25 min",
-//            calories = "320 cal",
-//            image = R.drawable.workout_1
-//        )
-//
-//        Spacer(Modifier.height(16.dp))
-//
-//        WorkoutCard(
-//            title = "Core Strength",
-//            level = "Beginner",
-//            duration = "18 min",
-//            calories = "210 cal",
-//            image = R.drawable.workout_2
-//        )
-//    }
-//}
+
 
 
 @Preview(showBackground = true)
@@ -815,7 +782,7 @@ fun WorkoutHistorySheet(
         ) {
             // Header with Total
             val totalMinutes = dailyStats.values.sum()
-            if (totalMinutes == 0) { // Check if sum is zero instead of map being empty
+            if (totalMinutes == 0) { // if sum is zero instead of map being empty
                 Box(Modifier.fillMaxWidth().height(150.dp), contentAlignment = Alignment.Center) {
                     Text("No activity recorded this week yet!", color = textMuted)
                 }
@@ -831,14 +798,16 @@ fun WorkoutHistorySheet(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 daysOfWeek.forEach { day ->
-                    val mins = dailyStats[day] ?: 0 // Use 0 if the day isn't in the map yet
+                    val mins = dailyStats[day] ?: 0 //  0 if the day isn't in the map yet
                     HistoryRow(day, mins)
                 }
             }
             }
             }
         }
+
     }
+
 
 
 @Composable
@@ -859,12 +828,12 @@ fun HistoryRow(day: String, minutes: Int) {
             color = textPrimary
         )
 
-        // The "Screen Time" Style Progress Bar
+        //
         Box(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
             // Track
             Box(Modifier.fillMaxWidth().height(8.dp).clip(CircleShape).background(Color.LightGray.copy(0.3f)))
 
-            // Progress (Goal is 30 mins for full bar)
+
             val progressWidth = (minutes / 30f).coerceIn(0.05f, 1f)
             Box(
                 Modifier
