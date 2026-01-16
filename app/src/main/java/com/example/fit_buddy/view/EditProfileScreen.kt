@@ -1,5 +1,9 @@
 package com.example.fit_buddy.view
 
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -13,6 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -21,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.rememberAsyncImagePainter
 import com.example.fit_buddy.R
 import com.example.fit_buddy.model.UserModel
 import com.example.fit_buddy.ui.theme.lavender400
@@ -41,6 +48,10 @@ fun EditProfileScreenComposable(
     var password by remember { mutableStateOf("password123") }
     var passwordVisible by remember { mutableStateOf(false) }
 
+    val user by viewModel
+        .getUserData(userId ?: "")
+        .collectAsState(initial = null)
+
     LaunchedEffect(userId) {
         if (userId != null) {
             viewModel.getUserData(userId).collect { user ->
@@ -49,6 +60,20 @@ fun EditProfileScreenComposable(
                     email = it.email
                     weight = it.weight
                 }
+            }
+        }
+    }
+    val context = LocalContext.current
+
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.GetContent()
+            ) { uri ->
+        uri?.let {
+            selectedImageUri = it
+            viewModel.uploadProfileImage(it) { success, msg ->
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -108,12 +133,18 @@ fun EditProfileScreenComposable(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
-                painter = painterResource(R.drawable.img),
-                contentDescription = null,
+                painter = rememberAsyncImagePainter(
+                    model = selectedImageUri ?: user?.profileImage
+                ),
+                contentDescription = "Profile Image",
                 modifier = Modifier
                     .size(100.dp)
                     .clip(CircleShape)
                     .border(4.dp, Color.White, CircleShape)
+                    .clickable {
+                        imagePickerLauncher.launch("image/*")
+                    },
+                contentScale = ContentScale.Crop
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -121,8 +152,12 @@ fun EditProfileScreenComposable(
             Text(
                 text = "Change Picture",
                 fontSize = 13.sp,
-                color = Color.Gray
+                color = Color.Gray,
+                modifier = Modifier.clickable {
+                    imagePickerLauncher.launch("image/*")
+                }
             )
+
         }
 
         Spacer(modifier = Modifier.height(10.dp))

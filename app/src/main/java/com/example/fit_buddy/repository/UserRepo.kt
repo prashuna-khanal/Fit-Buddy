@@ -1,5 +1,6 @@
 package com.example.fit_buddy.repository
 
+import android.net.Uri
 import com.example.fit_buddy.model.UserModel
 import kotlinx.coroutines.flow.Flow
 
@@ -26,6 +27,11 @@ interface UserRepo {
     fun updateUserProfile(
         userId: String,
         userModel: UserModel,
+        callback: (Boolean, String) -> Unit
+    )
+    fun uploadProfileImage(
+        userId: String,
+        imageUri: Uri,
         callback: (Boolean, String) -> Unit
     )
 
