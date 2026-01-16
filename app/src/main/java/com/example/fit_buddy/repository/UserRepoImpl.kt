@@ -29,6 +29,7 @@ class UserRepoImpl : UserRepo {
                 }
             }
     }
+
     override fun register(email: String, password: String, callback: (Boolean, String, String) -> Unit) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
