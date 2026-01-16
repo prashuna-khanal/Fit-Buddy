@@ -23,7 +23,7 @@ import com.example.fit_buddy.ui.theme.*
 fun AppSettingsScreenComposable() {
 
     var notificationsEnabled by remember { mutableStateOf(true) }
-    var darkModeEnabled by remember { mutableStateOf(false) }
+//    var darkModeEnabled by remember { mutableStateOf(false) }
     var metricUnitsEnabled by remember { mutableStateOf(true) }
     var analyticsEnabled by remember { mutableStateOf(true) }
 
