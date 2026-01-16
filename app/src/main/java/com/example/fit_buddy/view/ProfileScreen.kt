@@ -10,9 +10,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fit_buddy.R
@@ -21,9 +21,8 @@ import com.example.fit_buddy.viewmodel.FeedViewModel
 
 @Composable
 fun ProfileScreen(viewModel: FeedViewModel) {
+    val context = LocalContext.current
     var selectedIndex by remember { mutableStateOf(0) }
-
-
 
     Box(
         modifier = Modifier
@@ -31,25 +30,50 @@ fun ProfileScreen(viewModel: FeedViewModel) {
             .background(backgroundLightLavender)
     ) {
         when (selectedIndex) {
-            0 -> ProfileMainScreen {index -> selectedIndex = index}
-            1 -> EditProfileScreenComposable ()
-         2 -> FriendListScreen (
-             viewModel = viewModel,onBack ={selectedIndex =0},onFriendClick={friendId -> viewModel.navigateToFriendProfile(friendId)
-             selectedIndex =7}
-         )
+            // Main Profile Menu
+            0 -> ProfileMainScreen(
+                onNavigate = { selectedIndex = it },
+                onBackClick = {
+                    // This takes you back to WorkoutActivity
+                    val intent = android.content.Intent(context, WorkoutActivity::class.java)
+                    intent.flags = android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    context.startActivity(intent)
+                    (context as? android.app.Activity)?.finish()
+                }
+            )
 
-//            3 -> NotificationScreenComposable ()
-            3 -> PrivacySecurityScreenComposable ()
-//            4 -> AppSettingScreenComposable ()
+            // Sub-Screens
+            1 -> EditProfileScreenComposable()
+
+            2 -> FriendListScreen(
+                viewModel = viewModel,
+                onBack = { selectedIndex = 0 },
+                onFriendClick = { friendId ->
+                    viewModel.navigateToFriendProfile(friendId)
+                    selectedIndex = 7
+                }
+            )
+
+            3 -> PrivacySecurityScreenComposable()
+
             5 -> HelpSupportScreenComposable()
-            7-> OtherUserProfileScreen(userId = viewModel.selectedFriendId, viewModel = viewModel, onBack = {selectedIndex =2})
+
+            // View other user profile
+            7 -> OtherUserProfileScreen(
+                userId = viewModel.selectedFriendId,
+                viewModel = viewModel,
+                onBack = { selectedIndex = 2 }
+            )
+
+            else -> ProfileMainScreen(onNavigate = { selectedIndex = it }, onBackClick = {})
         }
     }
 }
 
 @Composable
 fun ProfileMainScreen(
-    onNavigate: (Int) -> Unit
+    onNavigate: (Int) -> Unit,
+    onBackClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -58,18 +82,39 @@ fun ProfileMainScreen(
             .verticalScroll(rememberScrollState())
             .padding(20.dp)
     ) {
-
         Spacer(Modifier.height(20.dp))
 
-        Text(
-            "Profile",
-            fontSize = 26.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
+        // HEADER
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.baseline_arrow_back_ios_24),
+                contentDescription = "Back",
+                tint = Color.Black,
+                modifier = Modifier
+                    .size(28.dp)
+                    .clickable { onBackClick() }
+            )
+
+            Box(
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "Profile",
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.width(28.dp)) // Balance the back icon
+        }
 
         Spacer(Modifier.height(25.dp))
 
+        // USER INFO CARD
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -96,6 +141,7 @@ fun ProfileMainScreen(
 
         Spacer(Modifier.height(30.dp))
 
+        // MENU ITEMS
         ProfileItem(R.drawable.baseline_person_24, "Edit Profile") { onNavigate(1) }
         ProfileItem(R.drawable.baseline_people_24, "Friends") { onNavigate(2) }
         ProfileItem(R.drawable.baseline_security_24, "Privacy & Security") { onNavigate(3) }
@@ -105,7 +151,7 @@ fun ProfileMainScreen(
         Spacer(Modifier.height(20.dp))
 
         LogoutItem {
-            // logout logic
+            // Add Logout Logic Here (e.g., FirebaseAuth.getInstance().signOut())
         }
     }
 }
@@ -139,7 +185,8 @@ fun ProfileItem(
 
         Icon(
             painter = painterResource(R.drawable.baseline_arrow_forward_ios_24),
-            contentDescription = null
+            contentDescription = null,
+            modifier = Modifier.size(16.dp)
         )
     }
 }
@@ -158,6 +205,7 @@ fun LogoutItem(onClick: () -> Unit) {
         Icon(
             painter = painterResource(R.drawable.baseline_logout_24),
             contentDescription = null,
+            tint = Color(0xFFD00000),
             modifier = Modifier.size(26.dp)
         )
 
@@ -170,10 +218,4 @@ fun LogoutItem(onClick: () -> Unit) {
             color = Color(0xFFD00000)
         )
     }
-}
-
-@Preview
-@Composable
-fun ProfilePreview(){
-//    ProfileScreen()
 }

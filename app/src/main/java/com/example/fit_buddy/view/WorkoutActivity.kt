@@ -72,11 +72,11 @@ class WorkoutActivity : ComponentActivity() {
             })
 
             // WorkoutScreen directly
-                    WorkoutScreen(navController,viewModel)
+            WorkoutScreen(navController,viewModel)
 
-            }
         }
     }
+}
 
 
 data class NavItem(val icon: Int, val label: String)
@@ -92,7 +92,7 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
     var selectedProfileId by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
     val feedViewModel: FeedViewModel = viewModel(
-       factory = FeedViewModelFactory(com.example.fit_buddy.repository.PostRepository(context),userRepo)
+        factory = FeedViewModelFactory(com.example.fit_buddy.repository.PostRepository(context),userRepo)
     )
 
 
@@ -460,7 +460,7 @@ fun WeeklyActivityCard(userViewModel: UserViewModel,onSeeAllClick: () -> Unit) {
                     onSeeAllClick()
                 },
                 color = lavender600,
-                )
+            )
         }
 
         Spacer(Modifier.height(20.dp))
@@ -788,25 +788,25 @@ fun WorkoutHistorySheet(
                 }
             }else{
 
-            Text("Activity History", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = textPrimary)
-            Text("Total this week: $totalMinutes mins", color = lavender600, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                Text("Activity History", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = textPrimary)
+                Text("Total this week: $totalMinutes mins", color = lavender600, fontSize = 16.sp, fontWeight = FontWeight.Medium)
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                daysOfWeek.forEach { day ->
-                    val mins = dailyStats[day] ?: 0 //  0 if the day isn't in the map yet
-                    HistoryRow(day, mins)
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    daysOfWeek.forEach { day ->
+                        val mins = dailyStats[day] ?: 0 //  0 if the day isn't in the map yet
+                        HistoryRow(day, mins)
+                    }
                 }
             }
-            }
-            }
         }
-
     }
+
+}
 
 
 
@@ -853,4 +853,3 @@ fun HistoryRow(day: String, minutes: Int) {
         )
     }
 }
-
