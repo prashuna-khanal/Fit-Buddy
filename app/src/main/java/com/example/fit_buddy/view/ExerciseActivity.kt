@@ -22,9 +22,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fit_buddy.R
 import com.example.fit_buddy.model.ExerciseModel
 import com.example.fit_buddy.ui.theme.*
+import com.example.fit_buddy.viewmodel.UserViewModel
 import com.example.fitbuddy.repository.PoseRepo
 import com.example.fitbuddy.view.AIScreen
 import com.example.fitbuddy.viewmodel.PoseViewModel
@@ -35,13 +37,20 @@ class ExerciseActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            ExerciseActivityScreen()
+
+            val userRepo = com.example.fit_buddy.repository.UserRepoImpl()
+            val userViewModel: UserViewModel = viewModel(factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+                override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                    return UserViewModel(userRepo,this@ExerciseActivity) as T
+                }
+            })
+            ExerciseActivityScreen(userViewModel=userViewModel)
         }
     }
 }
 
 @Composable
-fun ExerciseActivityScreen() {
+fun ExerciseActivityScreen(userViewModel: UserViewModel) {
     val context = LocalContext.current
     val poseRepo = remember { PoseRepo(context) }
     val poseViewModel = remember { PoseViewModel(poseRepo) }
@@ -73,6 +82,14 @@ fun ExerciseActivityScreen() {
             onDismissRequest = {}, //no dismiss
             confirmButton = {
                 Button(onClick = {
+                    val minutesEarned = secondsElapsed / 60
+
+                    val today = java.time.LocalDate.now().format(
+                        java.time.format.DateTimeFormatter.ofPattern("EEE")
+                    )
+
+
+                    userViewModel.updateWorkoutTime(today, minutesEarned)
                     showSummary=false
                     showAIScreen=false //ensure it returns to activities/exerices
                     secondsElapsed=0 //reset timer
@@ -132,7 +149,7 @@ fun ExerciseActivityScreen() {
 //                  small recording indicator or the live timer
                 Surface(
                     color = Color.Green.copy(alpha = 0.7f),
-                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 100.dp),
+                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 60.dp),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
@@ -144,6 +161,7 @@ fun ExerciseActivityScreen() {
             }
 //            button for complete
             Button(onClick = {
+
                 isTimerRunning=false //stop counting
                 showSummary = true //show result once stopped
             },

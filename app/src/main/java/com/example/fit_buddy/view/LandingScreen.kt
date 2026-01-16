@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -77,8 +78,12 @@ fun LandingScreen(navController: NavController, viewModel: UserViewModel) {
             ) {
                 item { AuthCard("Sign In", "Already have an account? Sign in to continue", Icons.Default.Person) { navController.navigate("signin") } }
                 item { AuthCard("Sign Up", "New here? Create your account today", Icons.Default.Add) { navController.navigate("signup") } }
-                item { AuthCard("Reset Password", "Forgot your password? Reset it here", Icons.Default.Refresh) { navController.navigate("reset") } }
-                item { AuthCard("OTP", "Verify your account with OTP", Icons.Default.CheckCircle) { navController.navigate("otp") } }
+                item(span = { GridItemSpan(2) }) {
+                    AuthCard("Reset Password", "Forgot your password? Reset it here", Icons.Default.Refresh) {
+                        navController.navigate("reset")
+                    }
+                }
+//                item { AuthCard("OTP", "Verify your account with OTP", Icons.Default.CheckCircle) { navController.navigate("otp") } }
             }
 
             // loading default for now
