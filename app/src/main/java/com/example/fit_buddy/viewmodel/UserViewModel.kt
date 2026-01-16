@@ -1,5 +1,6 @@
 package com.example.fit_buddy.viewmodel
 
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -65,6 +66,14 @@ class UserViewModel(private val repository: UserRepo) : ViewModel() {
     ) {
         repository.updateUserProfile(userId, userModel, callback)
     }
+    fun uploadProfileImage(
+        imageUri: Uri,
+        callback: (Boolean, String) -> Unit
+    ) {
+        val userId = getCurrentUserId() ?: return
+        repository.uploadProfileImage(userId, imageUri, callback)
+    }
+
     fun deleteAccount(
         userId: String,
         callback: (Boolean, String) -> Unit
