@@ -1,11 +1,13 @@
 package com.example.fit_buddy.repository
 
+import android.net.Uri
 import com.example.fit_buddy.model.UserModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -50,19 +52,7 @@ class UserRepoImpl : UserRepo {
                 }
             }
     }
-//
-//    override fun register(email: String, password: String, callback: (Boolean, String, String) -> Unit) {
-//        auth.createUserWithEmailAndPassword(email, password)
-//            .addOnCompleteListener { task ->
-//                if (task.isSuccessful) {
-//                    val userId = auth.currentUser?.uid ?: ""
-//
-//                    callback(true, "Account Created Successfully", userId)
-//                } else {
-//                    callback(false, task.exception?.message ?: "Registration Failed", "")
-//                }
-//            }
-//    }
+
 
     override fun addUserToDatabase(userId: String, userModel: UserModel, callback: (Boolean, String) -> Unit) {
 
@@ -142,6 +132,7 @@ class UserRepoImpl : UserRepo {
     override fun logout() {
         auth.signOut()    }
 
+
     override fun updateUserProfile(
         userId: String,
         userModel: UserModel,
@@ -157,5 +148,35 @@ class UserRepoImpl : UserRepo {
                 }
             }
     }
+    private val storageRef = FirebaseStorage.getInstance().reference
+
+    override fun uploadProfileImage(
+        userId: String,
+        imageUri: Uri,
+        callback: (Boolean, String) -> Unit
+    ) {
+        val imageRef = storageRef.child("profile_images/$userId.jpg")
+
+        imageRef.putFile(imageUri)
+            .continueWithTask { task ->
+                if (!task.isSuccessful) {
+                    task.exception?.let { throw it }
+                }
+                imageRef.downloadUrl
+            }
+            .addOnSuccessListener { uri ->
+                usersRef.child(userId).child("profileImage").setValue(uri.toString())
+                    .addOnCompleteListener {
+                        callback(true, "Profile picture updated")
+                    }
+            }
+            .addOnFailureListener {
+                callback(false, it.message ?: "Upload failed")
+            }    }
+
+
+
+
+
 
 }
