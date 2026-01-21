@@ -40,12 +40,14 @@ class SplashActivity : ComponentActivity() {
 fun SplashScreen() {
     val context = LocalContext.current
 
-    // Only navigate in real app, not in preview
+    // Navigate ONLY in real app, not Preview
     if (!LocalInspectionMode.current) {
         val activity = context as Activity
         LaunchedEffect(Unit) {
-            delay(2500) // Wait 2.5 seconds
-            context.startActivity(Intent(context, LoginActivity::class.java))
+            delay(2500)
+            context.startActivity(
+                Intent(context, LoginActivity::class.java)
+            )
             activity.finish()
         }
     }
@@ -55,88 +57,68 @@ fun SplashScreen() {
 
 @Composable
 fun SplashContent() {
-    // Load Lottie animation from res/raw/splash_lottie.json
-    val composition by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(R.raw.splash_lottie)
-    )
-    val progress by animateLottieCompositionAsState(
-        composition,
-        iterations = LottieConstants.IterateForever
-    )
-
     Scaffold { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(backgroundLightLavender), // Match ProfileScreen theme
+                .background(backgroundLightLavender),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
 
-            // Lottie Animation
-            LottieAnimation(
-                composition = composition,
-                progress = progress,
-                modifier = Modifier.size(200.dp) // Slightly smaller to match soft theme
-            )
+            // 👇 Lottie for real app, placeholder for Preview
+            if (LocalInspectionMode.current) {
+                Box(
+                    modifier = Modifier
+                        .size(200.dp)
+                        .background(Color.LightGray)
+                )
+            } else {
+                val composition by rememberLottieComposition(
+                    LottieCompositionSpec.RawRes(R.raw.burpie)
+                )
+
+                val progress by animateLottieCompositionAsState(
+                    composition = composition,
+                    iterations = LottieConstants.IterateForever
+                )
+
+                LottieAnimation(
+                    composition = composition,
+                    progress = progress,
+                    modifier = Modifier.size(200.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // App Name
             Text(
                 text = "Fit Buddy",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black // Match Profile text color
+                color = Color.Black
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Loading Text
             Text(
                 text = "App is starting, please wait...",
                 fontSize = 14.sp,
-                color = Color.Gray // Softer text for light background
+                color = Color.Gray
             )
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            CircularProgressIndicator(color = Color(0xFF6C63FF)) // Accent color similar to Profile theme
+            CircularProgressIndicator(
+                color = Color(0xFF6C63FF)
+            )
         }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun SplashScreenPreview() {
-    // Preview-safe placeholder
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundLightLavender),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Box(
-            modifier = Modifier
-                .size(200.dp)
-                .background(Color.Gray)
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-        Text(
-            text = "Fit Buddy",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "App is starting, please wait...",
-            fontSize = 14.sp,
-            color = Color.Gray
-        )
-        Spacer(modifier = Modifier.height(30.dp))
-        CircularProgressIndicator(color = Color(0xFF6C63FF))
-    }
+fun SplashPreview() {
+    SplashContent()
 }
