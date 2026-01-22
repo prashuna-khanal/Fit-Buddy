@@ -1,9 +1,11 @@
 package com.example.fit_buddy.viewmodel
 
 
+import android.app.Application
 import android.content.Context
 
 import android.net.Uri
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -13,11 +15,15 @@ import com.example.fit_buddy.repository.UserRepo
 import kotlinx.coroutines.flow.Flow
 
 
-class UserViewModel(private val repository: UserRepo,context: Context) : ViewModel() {
+class UserViewModel(
+    private val repository: UserRepo,
+    application: Application
+) : AndroidViewModel(application) {
+
+    private val sharedPreferences =
+        application.getSharedPreferences("fit_buddy_prefs", Context.MODE_PRIVATE)
 
 
-
-    private val sharedPreferences = context.getSharedPreferences("fit_buddy_prefs", Context.MODE_PRIVATE)
     // LiveData to observe changes
     private val _loading = MutableLiveData<Boolean>(false)
     val loading: LiveData<Boolean> get() = _loading
@@ -119,9 +125,21 @@ class UserViewModel(private val repository: UserRepo,context: Context) : ViewMod
     ) {
         repository.deleteAccount(userId, callback)
     }
+    private val _notificationsEnabled = MutableLiveData(
+        sharedPreferences.getBoolean("notifications_enabled", true)
+    )
+    val notificationsEnabled: LiveData<Boolean> = _notificationsEnabled
+
+    fun setNotificationsEnabled(enabled: Boolean) {
+        _notificationsEnabled.value = enabled
+        sharedPreferences.edit()
+            .putBoolean("notifications_enabled", enabled)
+            .apply()
+    }
 
     fun logout() {
         repository.logout()
     }
+
 
 }
