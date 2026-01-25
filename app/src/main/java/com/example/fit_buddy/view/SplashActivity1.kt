@@ -31,32 +31,32 @@ class SplashActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            SplashScreen()
+            SplashScreen1()
         }
     }
 }
 
 @Composable
-fun SplashScreen() {
+fun SplashScreen1() {
     val context = LocalContext.current
 
-    // Navigate ONLY in real app, not Preview
+    // Run navigation only in real app (not Preview)
     if (!LocalInspectionMode.current) {
         val activity = context as Activity
         LaunchedEffect(Unit) {
             delay(2500)
             context.startActivity(
-                Intent(context, LoginActivity::class.java)
+                Intent(context, LandingActivity::class.java)
             )
             activity.finish()
         }
     }
 
-    SplashContent()
+    SplashContent1()
 }
 
 @Composable
-fun SplashContent() {
+fun SplashContent1() {
     Scaffold { padding ->
         Column(
             modifier = Modifier
@@ -67,7 +67,7 @@ fun SplashContent() {
             verticalArrangement = Arrangement.Center
         ) {
 
-            // 👇 Lottie for real app, placeholder for Preview
+            // Lottie animation (real app)
             if (LocalInspectionMode.current) {
                 Box(
                     modifier = Modifier
@@ -119,6 +119,6 @@ fun SplashContent() {
 
 @Preview(showBackground = true)
 @Composable
-fun SplashPreview() {
-    SplashContent()
+fun SplashPreview1() {
+    SplashContent1()
 }

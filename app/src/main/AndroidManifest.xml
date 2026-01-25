@@ -23,9 +23,9 @@
         android:theme="@style/Theme.Fit_Buddy"
         tools:replace="android:fullBackupContent">
         <activity
-            android:name=".view.SplashActivity"
+            android:name=".view.SplashActivity1"
             android:exported="true"
-            android:label="@string/title_activity_splash"
+            android:label="@string/title_activity_splash1"
             android:theme="@style/Theme.Fit_Buddy">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -33,7 +33,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <!-- android:theme="@style/Theme.Fit_Buddy"> -->
         <!-- <activity -->
         <!-- android:name=".view.EditProfileScreen" -->
@@ -51,14 +50,14 @@
         <!-- android:exported="true"> -->
         <activity
             android:name=".view.LandingActivity"
-            android:exported="true"
+            android:exported="false"
             android:label="@string/title_activity_landing"
             android:theme="@style/Theme.Fit_Buddy">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN" />-->
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+<!--                <category android:name="android.intent.category.LAUNCHER" />-->
+<!--            </intent-filter>-->
         </activity> <!-- Only one LAUNCHER activity -->
         <activity
             android:name=".view.WorkoutActivity"
