@@ -33,7 +33,7 @@ class LandingActivity : ComponentActivity() {
             val viewModel: UserViewModel = viewModel(
                 factory = object : androidx.lifecycle.ViewModelProvider.Factory {
                     override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                        return UserViewModel(userRepo) as T
+                        return UserViewModel(userRepo,this@LandingActivity) as T
                     }
                 }
             )
