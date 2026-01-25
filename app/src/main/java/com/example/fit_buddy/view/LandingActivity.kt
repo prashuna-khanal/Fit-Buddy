@@ -16,6 +16,7 @@ class LandingActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+<<<<<<< HEAD
         // ✅ Auto-login (optional, enable later)
         /*
         val currentUser = FirebaseAuth.getInstance().currentUser
@@ -25,6 +26,17 @@ class LandingActivity : ComponentActivity() {
             return
         }
         */
+=======
+        // auto login if user registered in firebase5
+//        val currentUser = FirebaseAuth.getInstance().currentUser
+//        if (currentUser != null) {
+////            ensure email is verified
+//            val intent = Intent(this, WorkoutActivity::class.java)
+//            startActivity(intent)
+//            finish()
+//            return
+//        }
+>>>>>>> 9dcdba9ba4c4d58982fc999bead7c5dd61cef8e2
 
         setContent {
             val navController = rememberNavController()
@@ -33,7 +45,7 @@ class LandingActivity : ComponentActivity() {
             val viewModel: UserViewModel = viewModel(
                 factory = object : androidx.lifecycle.ViewModelProvider.Factory {
                     override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                        return UserViewModel(userRepo) as T
+                        return UserViewModel(userRepo,this@LandingActivity) as T
                     }
                 }
             )

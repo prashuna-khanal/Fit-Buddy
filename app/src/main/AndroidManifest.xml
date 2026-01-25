@@ -22,6 +22,25 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Fit_Buddy"
         tools:replace="android:fullBackupContent">
+
+        <!--        android:theme="@style/Theme.Fit_Buddy">-->
+        <!--        <activity-->
+        <!--            android:name=".view.EditProfileScreen"-->
+        <!--            android:exported="true"-->
+        <!--            android:label="@string/title_activity_edit_profile_screen"-->
+        <!--            android:theme="@style/Theme.Fit_Buddy">-->
+        <!--            <intent-filter>-->
+        <!--                <action android:name="android.intent.action.MAIN" />-->
+
+        <!--                <category android:name="android.intent.category.LAUNCHER" />-->
+        <!--            </intent-filter>-->
+        <!--        </activity>-->
+        <!-- Only one LAUNCHER activity -->
+        <!--        <activity-->
+        <!--            android:name=".view.WorkoutActivity"-->
+        <!--            android:exported="true">-->
+
+
         <activity
             android:name=".view.SplashActivity1"
             android:exported="true"
@@ -49,6 +68,7 @@
         <!-- android:name=".view.WorkoutActivity" -->
         <!-- android:exported="true"> -->
         <activity
+<<<<<<< HEAD
             android:name=".view.LandingActivity"
             android:exported="false"
             android:label="@string/title_activity_landing"
@@ -62,6 +82,16 @@
         <activity
             android:name=".view.WorkoutActivity"
             android:exported="false">
+=======
+            android:name=".view.WorkoutActivity"
+            android:exported="false">
+            <!--            <intent-filter>-->
+            <!--                <action android:name="android.intent.action.MAIN" />-->
+
+            <!--                <category android:name="android.intent.category.LAUNCHER" />-->
+            <!--            </intent-filter>-->
+        </activity>
+>>>>>>> 9dcdba9ba4c4d58982fc999bead7c5dd61cef8e2
 
             <!-- <intent-filter> -->
             <!-- <action android:name="android.intent.action.MAIN" /> -->
