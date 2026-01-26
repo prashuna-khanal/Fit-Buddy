@@ -4,6 +4,9 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.lifecycle.ViewModel
+import android.content.Context
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -12,12 +15,13 @@ import com.example.fit_buddy.repository.UserRepoImpl
 import com.example.fit_buddy.viewmodel.UserViewModel
 import com.example.fit_buddy.viewmodel.UserViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
+import androidx.navigation.NavController
 
 class LandingActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // ✅ Auto-login (optional, enable later)
+        //  Auto-login (optional, enable later)
         /*
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser != null) {
@@ -42,13 +46,13 @@ class LandingActivity : ComponentActivity() {
                 startDestination = "landing"
             ) {
                 composable("landing") {
-                    LandingScreen(navController, viewModel)
+                    LandingScreen(navController, userViewModel)
                 }
                 composable("signin") {
-                    LoginScreen(navController, viewModel)
+                    LoginScreen(navController, userViewModel)
                 }
                 composable("signup") {
-                    SignUpScreen(navController, viewModel)
+                    SignUpScreen(navController, userViewModel)
                 }
             }
         }

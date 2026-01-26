@@ -539,7 +539,8 @@ fun WorkoutCard(
     level: String,
     duration: String,
     calories: String,
-    image: Int
+    image: Int,
+
 ) {
     Box(
         modifier = Modifier

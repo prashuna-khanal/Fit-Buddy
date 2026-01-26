@@ -144,7 +144,7 @@ fun RegistrationBody() {
 
                 Box {
                     OutlinedTextField(
-                        value = selectedGender,
+                        value = gender,
                         onValueChange = {},
                         placeholder = { Text("Select Gender") },
                         enabled = false,
@@ -163,7 +163,7 @@ fun RegistrationBody() {
                     DropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(0.8f)
                     ) {
                         options.forEach { option ->
                             DropdownMenuItem(
@@ -182,7 +182,6 @@ fun RegistrationBody() {
 
             LabeledField("Date of Birth") {
                 val calendar = Calendar.getInstance()
-
                 OutlinedTextField(
                     value = dob,
                     onValueChange = {},
@@ -309,9 +308,9 @@ fun RegistrationBody() {
                                 } else {
                                     Toast.makeText(context, dbMsg, Toast.LENGTH_SHORT).show()
                                 }
+                            } else {
+                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                             }
-                        } else {
-                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                         }
                     }
                 },

@@ -61,14 +61,16 @@ fun ExerciseActivityScreen(userViewModel: UserViewModel) {
     var showSummary by remember { mutableStateOf(false) }
 
     LaunchedEffect(poseViewModel.poseState) {
+
         if (showAIScreen && poseViewModel.poseState != null && !isTimerRunning) {
             isTimerRunning = true
+
         }
     }
 
     LaunchedEffect(isTimerRunning) {
         if (isTimerRunning) {
-            while (true) {
+            while (isTimerRunning) {
                 delay(1000L)
                 secondsElapsed++
             }
@@ -88,8 +90,10 @@ fun ExerciseActivityScreen(userViewModel: UserViewModel) {
                     },
                     colors = ButtonDefaults.buttonColors(lavender500),
                     shape = RoundedCornerShape(12.dp)
+
                 ) {
                     Text("Back to Exercises", color = Color.White)
+
                 }
             },
             title = { Text("Workout Complete!", fontWeight = FontWeight.Bold, fontSize = 22.sp, color = textPrimary) },
