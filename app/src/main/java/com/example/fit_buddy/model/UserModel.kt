@@ -9,8 +9,7 @@ data class UserModel (
     val gender: String = "",
     val weight: String = "",
     val height: String = "",
-    // ✅ Password is usually kept local or handled by Firebase Auth,
-    // but included here if your specific logic requires it.
+
     val password: String = ""
 ){
 
@@ -24,7 +23,6 @@ data class UserModel (
             "gender" to gender,
             "weight" to weight,
             "height" to height
-            // Note: We typically don't upload the password to the database map for security
         )
     }
 }

@@ -38,11 +38,10 @@ class ExerciseActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            // ✅ Use the current application instance
+            //  Use the current application instance
             val application = LocalContext.current.applicationContext as android.app.Application
             val userRepo = com.example.fit_buddy.repository.UserRepoImpl()
 
-            // ✅ Updated Factory to pass both Repository and Application
             val userViewModel: UserViewModel = viewModel(
                 factory = object : androidx.lifecycle.ViewModelProvider.Factory {
                     @Suppress("UNCHECKED_CAST")
@@ -84,7 +83,7 @@ fun ExerciseActivityScreen(userViewModel: UserViewModel) {
     // Timer logic
     LaunchedEffect(isTimerRunning) {
         if (isTimerRunning) {
-            while (true) {
+            while (isTimerRunning) {
                 delay(1000L)
                 secondsElapsed++
             }

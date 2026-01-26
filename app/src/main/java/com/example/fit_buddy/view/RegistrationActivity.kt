@@ -51,7 +51,8 @@ class RegistrationActivity : ComponentActivity() {
             val userViewModel: UserViewModel = viewModel(
                 factory = object : ViewModelProvider.Factory {
                     override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                        return UserViewModel(UserRepoImpl(), context.applicationContext) as T
+                        val app = context.applicationContext as android.app.Application
+                        return UserViewModel(UserRepoImpl(), app) as T
                     }
                 }
             )

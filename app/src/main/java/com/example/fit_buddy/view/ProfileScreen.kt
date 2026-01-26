@@ -17,9 +17,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fit_buddy.R
 import com.example.fit_buddy.ui.theme.backgroundLightLavender
+import com.example.fit_buddy.viewmodel.FeedViewModel
 
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(viewModel: FeedViewModel) {
 
     var selectedIndex by remember { mutableStateOf(0) }
 
@@ -31,8 +32,14 @@ fun ProfileScreen() {
         when (selectedIndex) {
             0 -> ProfileMainScreen { selectedIndex = it }
             1 -> EditProfileScreenComposable ()
-//            2 -> FriendsScreenComposable ()
-//            3 -> NotificationScreenComposable ()
+            2 -> FriendListScreen(
+                viewModel = viewModel,
+                onBack = { selectedIndex = 0 },
+                onFriendClick = { friendId ->
+                    // Navigate to friend's profile if you have that screen
+                    println("Clicked on friend: $friendId")
+                }
+            )//            3 -> NotificationScreenComposable ()
             3 -> PrivacySecurityScreenComposable ()
 //            4 -> AppSettingScreenComposable ()
             5 -> HelpSupportScreenComposable()
@@ -165,8 +172,8 @@ fun LogoutItem(onClick: () -> Unit) {
     }
 }
 
-@Preview
-@Composable
-fun ProfilePreview(){
-    ProfileScreen()
-}
+//@Preview
+//@Composable
+//fun ProfilePreview(){
+//    ProfileScreen()
+//}

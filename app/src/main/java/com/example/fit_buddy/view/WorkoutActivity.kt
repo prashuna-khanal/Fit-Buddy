@@ -65,14 +65,14 @@ class WorkoutActivity : ComponentActivity() {
             // dependencies
             val navController = rememberNavController()
             val userRepo = UserRepoImpl()
-            val viewModel: UserViewModel = viewModel(factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+            val userViewModel: UserViewModel = viewModel(factory = object : androidx.lifecycle.ViewModelProvider.Factory {
                 override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                    return UserViewModel(userRepo,this@WorkoutActivity) as T
+                    return UserViewModel(userRepo,this@WorkoutActivity.application) as T
                 }
             })
 
             // WorkoutScreen directly
-            WorkoutScreen(navController,viewModel)
+            WorkoutScreen(navController,userViewModel)
 
         }
     }
@@ -559,7 +559,8 @@ fun WorkoutCard(
     level: String,
     duration: String,
     calories: String,
-    image: Int
+    image: Int,
+
 ) {
 
     Box(
@@ -748,7 +749,8 @@ fun PreviewWorkoutScreen() {
     val mockViewModel: UserViewModel = viewModel(
         factory = object : androidx.lifecycle.ViewModelProvider.Factory {
             override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                return UserViewModel(userRepo,context) as T
+                val app = context.applicationContext as android.app.Application
+                return UserViewModel(userRepo,app) as T
             }
         }
     )
