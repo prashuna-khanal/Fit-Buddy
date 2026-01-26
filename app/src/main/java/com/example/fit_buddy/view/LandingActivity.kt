@@ -34,7 +34,7 @@ class LandingActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
 
-            val viewModel: UserViewModel = viewModel(
+            val userViewModel: UserViewModel = viewModel(
                 factory = UserViewModelFactory(
                     application = application,
                     repository = UserRepoImpl()
