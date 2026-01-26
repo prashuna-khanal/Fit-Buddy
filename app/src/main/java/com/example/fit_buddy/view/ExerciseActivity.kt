@@ -30,6 +30,7 @@ import com.example.fit_buddy.viewmodel.UserViewModel
 import com.example.fitbuddy.repository.PoseRepo
 import com.example.fitbuddy.view.AIScreen
 import com.example.fitbuddy.viewmodel.PoseViewModel
+import com.example.fit_buddy.viewmodel.WorkoutViewModel
 import kotlinx.coroutines.delay
 
 class ExerciseActivity : ComponentActivity() {
@@ -55,70 +56,67 @@ fun ExerciseActivityScreen(userViewModel: UserViewModel) {
     val poseRepo = remember { PoseRepo(context) }
     val poseViewModel = remember { PoseViewModel(poseRepo) }
 
+    // Add WorkoutViewModel here
+    val workoutViewModel: WorkoutViewModel = viewModel()
+
     // State to track if we should show AIScreen
     var showAIScreen by remember { mutableStateOf(false) }
-//    state variables for timer and showing time how much is done
-    var secondsElapsed by remember{ mutableIntStateOf(0)}
+    var secondsElapsed by remember { mutableIntStateOf(0) }
     var isTimerRunning by remember { mutableStateOf(false) }
     var showSummary by remember { mutableStateOf(false) }
-//    Pose dection to start timer
+
+    // Pose detection to start timer
     LaunchedEffect(poseViewModel.poseState) {
-        if(showAIScreen && poseViewModel.poseState!=null && !isTimerRunning){
-      isTimerRunning=true
+        if (showAIScreen && poseViewModel.poseState != null && !isTimerRunning) {
+            isTimerRunning = true
         }
     }
-//    timer logic
+
+    // Timer logic
     LaunchedEffect(isTimerRunning) {
-        if(isTimerRunning){
-            while (true){
+        if (isTimerRunning) {
+            while (true) {
                 delay(1000L)
                 secondsElapsed++
             }
         }
     }
-//    showing summary of time when completed button is clicked
-    if(showSummary){
+
+    // Summary Dialog
+    if (showSummary) {
         AlertDialog(
-            onDismissRequest = {}, //no dismiss
+            onDismissRequest = { },
             confirmButton = {
                 Button(onClick = {
-                    val minutesEarned = secondsElapsed / 60
-
-                    val today = java.time.LocalDate.now().format(
-                        java.time.format.DateTimeFormatter.ofPattern("EEE")
-                    )
-
-
-                    userViewModel.updateWorkoutTime(today, minutesEarned)
-                    showSummary=false
-                    showAIScreen=false //ensure it returns to activities/exerices
-                    secondsElapsed=0 //reset timer
+                    showSummary = false
+                    showAIScreen = false
+                    secondsElapsed = 0
+                    isTimerRunning = false
                 },
-                    colors = ButtonDefaults.buttonColors(contentColor = lavender500),
+                    colors = ButtonDefaults.buttonColors(containerColor = lavender500),
                     shape = RoundedCornerShape(12.dp)
-
-                    ) {
-                    Text("Back to Exercies", color = Color.White)
+                ) {
+                    Text("Back to Exercises", color = Color.White)
                 }
             },
             title = {
-                Text("Workout Complete!" , fontWeight = FontWeight.Bold, fontSize = 22.sp, color = textPrimary)
+                Text("Workout Complete!", fontWeight = FontWeight.Bold, fontSize = 22.sp, color = textPrimary)
             },
             text = {
-                Column (modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally){
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Text("Total Time", color = textSecondary, fontSize = 14.sp)
                     Spacer(modifier = Modifier.height(8.dp))
-//                  minutes: seconds  , one digit vaye 0 add garera dekhaune %d show integer valye ani 2 alsway show two digits eg; 02:05
-                    Text(text = "%02d:%02d".format(secondsElapsed / 60, secondsElapsed % 60),
+                    Text(
+                        text = "%02d:%02d".format(secondsElapsed / 60, secondsElapsed % 60),
                         fontSize = 48.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = lavender500
-                        )
+                    )
                     Spacer(modifier = Modifier.height(10.dp))
                     Text("Great job keeping up with your goals!", color = textSecondary, fontSize = 14.sp)
-
-
                 }
             },
             shape = RoundedCornerShape(28.dp),
@@ -127,12 +125,9 @@ fun ExerciseActivityScreen(userViewModel: UserViewModel) {
     }
 
     if (showAIScreen) {
-        // Show AIScreen with current exercise
         Box(modifier = Modifier.fillMaxSize()) {
-
-
             AIScreen(viewModel = poseViewModel)
-//            let user know that time started
+
             if (!isTimerRunning) {
                 Surface(
                     color = Color.Black.copy(alpha = 0.6f),
@@ -146,10 +141,9 @@ fun ExerciseActivityScreen(userViewModel: UserViewModel) {
                     )
                 }
             } else {
-//                  small recording indicator or the live timer
                 Surface(
                     color = Color.Green.copy(alpha = 0.7f),
-                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 60.dp),
+                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 100.dp),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
@@ -159,15 +153,22 @@ fun ExerciseActivityScreen(userViewModel: UserViewModel) {
                     )
                 }
             }
-//            button for complete
-            Button(onClick = {
 
-                isTimerRunning=false //stop counting
-                showSummary = true //show result once stopped
-            },
+            // Complete Workout Button - Now saves time to Firebase
+            Button(
+                onClick = {
+                    isTimerRunning = false
+                    showSummary = true
+
+                    // Save workout minutes to Firebase
+                    val minutes = secondsElapsed / 60
+                    if (minutes > 0) {
+                        workoutViewModel.addWorkoutMinutes(minutes)
+                    }
+                },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(end = 20.dp, bottom = 180.dp)
+                    .padding(bottom = 180.dp)
                     .height(48.dp)
                     .width(200.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
@@ -178,7 +179,6 @@ fun ExerciseActivityScreen(userViewModel: UserViewModel) {
             }
         }
     } else {
-        // Show Exercise List
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -186,7 +186,6 @@ fun ExerciseActivityScreen(userViewModel: UserViewModel) {
                 .verticalScroll(rememberScrollState())
                 .padding(top = 18.dp)
         ) {
-            // Top Header
             Text(
                 text = "Exercises",
                 fontSize = 30.sp,
@@ -195,7 +194,6 @@ fun ExerciseActivityScreen(userViewModel: UserViewModel) {
                 modifier = Modifier.padding(start = 20.dp, bottom = 10.dp)
             )
 
-            // List of Exercise Cards
             val exercises = listOf(
                 ExerciseModel("Push Ups", R.drawable.pushup, "Chest • Triceps"),
                 ExerciseModel("Squats", R.drawable.squat, "Legs • Glutes"),
@@ -210,30 +208,18 @@ fun ExerciseActivityScreen(userViewModel: UserViewModel) {
                     exercise = exercise,
                     onClick = {
                         when (exercise.name) {
-                            "Push Ups" ->
-                                poseViewModel.setExerciseType(PoseViewModel.ExerciseType.PUSH_UP)
-
-                            "Squats" ->
-                                poseViewModel.setExerciseType(PoseViewModel.ExerciseType.SQUAT)
-
-                            "Plank" ->
-                                poseViewModel.setExerciseType(PoseViewModel.ExerciseType.PLANK)
-
-                            "Lunges" ->
-                                poseViewModel.setExerciseType(PoseViewModel.ExerciseType.LUNGE)
-
-                            "Jumping Jacks" ->
-                                poseViewModel.setExerciseType(PoseViewModel.ExerciseType.JUMPING_JACK)
-
-                            "Mountain Climbers" ->
-                                poseViewModel.setExerciseType(PoseViewModel.ExerciseType.MOUNTAIN_CLIMBER)
+                            "Push Ups" -> poseViewModel.setExerciseType(PoseViewModel.ExerciseType.PUSH_UP)
+                            "Squats" -> poseViewModel.setExerciseType(PoseViewModel.ExerciseType.SQUAT)
+                            "Plank" -> poseViewModel.setExerciseType(PoseViewModel.ExerciseType.PLANK)
+                            "Lunges" -> poseViewModel.setExerciseType(PoseViewModel.ExerciseType.LUNGE)
+                            "Jumping Jacks" -> poseViewModel.setExerciseType(PoseViewModel.ExerciseType.JUMPING_JACK)
+                            "Mountain Climbers" -> poseViewModel.setExerciseType(PoseViewModel.ExerciseType.MOUNTAIN_CLIMBER)
                         }
 //                        start timer when start now is clicked
                         showAIScreen= true
 //                        isTimerRunning=true
 
                     }
-
                 )
             }
 
@@ -243,10 +229,7 @@ fun ExerciseActivityScreen(userViewModel: UserViewModel) {
 }
 
 @Composable
-fun ExerciseCardUI(
-    exercise: ExerciseModel,
-    onClick: () -> Unit
-) {
+fun ExerciseCardUI(exercise: ExerciseModel, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -255,43 +238,22 @@ fun ExerciseCardUI(
             .background(Color.White)
             .padding(18.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Exercise Image
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Image(
                 painter = painterResource(id = exercise.image),
                 contentDescription = exercise.name,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(110.dp)
-                    .clip(RoundedCornerShape(20.dp))
+                modifier = Modifier.size(110.dp).clip(RoundedCornerShape(20.dp))
             )
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = exercise.name,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = textPrimary
-                )
-
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = exercise.name, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textPrimary)
                 Spacer(modifier = Modifier.height(6.dp))
-
-                Text(
-                    text = exercise.description,
-                    fontSize = 14.sp,
-                    color = textSecondary
-                )
-
+                Text(text = exercise.description, fontSize = 14.sp, color = textSecondary)
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // START NOW Button
                 Button(
                     onClick = onClick,
                     colors = ButtonDefaults.buttonColors(containerColor = lavender500),
