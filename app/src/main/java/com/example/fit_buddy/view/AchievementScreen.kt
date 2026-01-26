@@ -86,7 +86,7 @@ fun AchievementScreen() {
     }
 }
 
-/* ================= STREAK ================= */
+
 
 @Composable
 fun StreakCard() {

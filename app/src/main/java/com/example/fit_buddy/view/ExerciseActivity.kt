@@ -64,7 +64,7 @@ fun ExerciseActivityScreen(userViewModel: UserViewModel) {
 //    Pose dection to start timer
     LaunchedEffect(poseViewModel.poseState) {
         if(showAIScreen && poseViewModel.poseState!=null && !isTimerRunning){
-      isTimerRunning=true
+            isTimerRunning=true
         }
     }
 //    timer logic
@@ -97,7 +97,7 @@ fun ExerciseActivityScreen(userViewModel: UserViewModel) {
                     colors = ButtonDefaults.buttonColors(contentColor = lavender500),
                     shape = RoundedCornerShape(12.dp)
 
-                    ) {
+                ) {
                     Text("Back to Exercies", color = Color.White)
                 }
             },
@@ -114,7 +114,7 @@ fun ExerciseActivityScreen(userViewModel: UserViewModel) {
                         fontSize = 48.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = lavender500
-                        )
+                    )
                     Spacer(modifier = Modifier.height(10.dp))
                     Text("Great job keeping up with your goals!", color = textSecondary, fontSize = 14.sp)
 

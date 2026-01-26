@@ -5,9 +5,10 @@ class UserModel (
     val fullName: String = "",
     val email: String = "",
     val dob: String = "",
-    val profileImage: String = "",
+    val profileImage: String? = "",
     val gender: String = "",
-    val weight: String = ""
+    val weight: String = "",
+    val password: String = ""
 ){
 
     fun toMap(): Map<String, Any?> {

@@ -24,7 +24,7 @@ class UserViewModel(private val repository: UserRepo,context: Context) : ViewMod
 
     private val _error = MutableLiveData<String?>(null)
     val error: LiveData<String?> get() = _error
-//
+    //
     private val _workoutMinutes = MutableLiveData<Map<String, Int>>(loadWorkoutData())
     val workoutMinutes: LiveData<Map<String, Int>> get() = _workoutMinutes
 
