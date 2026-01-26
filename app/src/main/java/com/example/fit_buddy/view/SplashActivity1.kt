@@ -35,7 +35,7 @@ class SplashActivity : ComponentActivity() {
         }
     }
 }
-
+//splash screen with animation
 @Composable
 fun SplashScreen1() {
     val context = LocalContext.current
