@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.fit_buddy.repository.UserRepoImpl
 import com.example.fit_buddy.viewmodel.UserViewModel
+import com.example.fit_buddy.viewmodel.UserViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
 import androidx.navigation.NavController
 
@@ -32,20 +33,12 @@ class LandingActivity : ComponentActivity() {
 
         setContent {
             val navController = rememberNavController()
-            val userRepo = UserRepoImpl()
-            val appContext = applicationContext
 
-            // Change this specific block in LandingActivity.kt
-            val userViewModel: UserViewModel = viewModel(
-                factory = object : ViewModelProvider.Factory {
-                    @Suppress("UNCHECKED_CAST")
-                    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                        // FIX: Cast applicationContext to Application
-                        val app = applicationContext as android.app.Application
-
-                        return UserViewModel(userRepo, app) as T
-                    }
-                }
+            val viewModel: UserViewModel = viewModel(
+                factory = UserViewModelFactory(
+                    application = application,
+                    repository = UserRepoImpl()
+                )
             )
 
             NavHost(

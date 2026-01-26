@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fit_buddy.R
@@ -31,18 +32,12 @@ fun ProfileScreen(viewModel: FeedViewModel) {
     ) {
         when (selectedIndex) {
             0 -> ProfileMainScreen { selectedIndex = it }
-            1 -> EditProfileScreenComposable ()
-            2 -> FriendListScreen(
-                viewModel = viewModel,
-                onBack = { selectedIndex = 0 },
-                onFriendClick = { friendId ->
-                    // Navigate to friend's profile if you have that screen
-                    println("Clicked on friend: $friendId")
-                }
-            )//            3 -> NotificationScreenComposable ()
-            3 -> PrivacySecurityScreenComposable ()
-//            4 -> AppSettingScreenComposable ()
-            5 -> HelpSupportScreenComposable()
+            1 -> EditProfileScreenComposable (
+                onBackClick = { selectedIndex = 0 }   )
+//            2 -> FriendListScreen()
+            3 -> PrivacySecurityScreenComposable (onBackClick = { selectedIndex = 0 })
+            4 -> AppSettingsScreenComposable (onBackClick = { selectedIndex = 0 })
+            5 -> HelpSupportScreenComposable(onBackClick = { selectedIndex = 0 })
         }
     }
 }
@@ -172,8 +167,8 @@ fun LogoutItem(onClick: () -> Unit) {
     }
 }
 
-//@Preview
-//@Composable
-//fun ProfilePreview(){
-//    ProfileScreen()
-//}
+@Preview
+@Composable
+fun ProfilePreview(){
+    ProfileScreen()
+}

@@ -47,6 +47,4 @@ interface UserRepo {
 
     fun logout()
 
-
 }
-

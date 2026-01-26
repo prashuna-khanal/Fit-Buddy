@@ -1,6 +1,7 @@
 package com.example.fit_buddy.view
 
 import android.app.Activity
+import android.app.Application
 import android.app.DatePickerDialog
 import android.os.Bundle
 import android.widget.Toast
@@ -23,20 +24,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.Blue
-import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.fit_buddy.R
 import com.example.fit_buddy.model.UserModel
+import com.example.fit_buddy.repository.UserRepo
 import com.example.fit_buddy.repository.UserRepoImpl
 import com.example.fit_buddy.viewmodel.UserViewModel
 import java.util.Calendar
@@ -46,34 +47,47 @@ class RegistrationActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val context = LocalContext.current
-
-            val userViewModel: UserViewModel = viewModel(
-                factory = object : ViewModelProvider.Factory {
-                    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                        val app = context.applicationContext as android.app.Application
-                        return UserViewModel(UserRepoImpl(), app) as T
-                    }
-                }
-            )
-            RegistrationBody(userViewModel)
+            RegistrationBody()
         }
     }
 }
 
+// Factory
+class UserViewModelFactory(
+    private val application: Application,
+    private val repository: UserRepo
+) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(UserViewModel::class.java)) {
+            return UserViewModel(application, repository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
+
 @Composable
-fun RegistrationBody(userViewModel: UserViewModel) {
-    var visibility by remember { mutableStateOf(false) }
+fun RegistrationBody() {
+    var passwordVisible by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val application = context.applicationContext as Application
+
+    val userViewModel: UserViewModel = viewModel(
+        factory = UserViewModelFactory(
+            application = application,
+            repository = UserRepoImpl()
+        )
+    )
 
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var confirmPass by remember { mutableStateOf("") }
-    var gender by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var selectedGender by remember { mutableStateOf("") }
     var dob by remember { mutableStateOf("") }
-    var terms by remember { mutableStateOf(false) }
+    var termsAccepted by remember { mutableStateOf(false) }
 
-    val context = LocalContext.current
     val activity = context as? Activity
 
     val gradientBg = Brush.verticalGradient(
@@ -94,12 +108,7 @@ fun RegistrationBody(userViewModel: UserViewModel) {
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                "FitBuddy",
-                fontSize = 38.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF1A1A1A),
-            )
+            Text("FitBuddy", fontSize = 38.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A))
 
             Text(
                 "Start your fitness journey",
@@ -108,7 +117,7 @@ fun RegistrationBody(userViewModel: UserViewModel) {
                 modifier = Modifier.padding(bottom = 20.dp)
             )
 
-            LabeledField(label = "Full Name") {
+            LabeledField("Full Name") {
                 OutlinedTextField(
                     value = fullName,
                     onValueChange = { fullName = it },
@@ -118,7 +127,7 @@ fun RegistrationBody(userViewModel: UserViewModel) {
                 )
             }
 
-            LabeledField(label = "Email") {
+            LabeledField("Email") {
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
@@ -129,23 +138,17 @@ fun RegistrationBody(userViewModel: UserViewModel) {
                 )
             }
 
-            LabeledField(label = "Gender") {
+            LabeledField("Gender") {
                 var expanded by remember { mutableStateOf(false) }
-                val options = listOf("Female", "Male", "Other")
+                val options = listOf("Female", "Male", "Other", "Prefer not to say")
 
                 Box {
                     OutlinedTextField(
                         value = gender,
                         onValueChange = {},
                         placeholder = { Text("Select Gender") },
-                        readOnly = true,
-                        trailingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = null,
-                                modifier = Modifier.clickable { expanded = true }
-                            )
-                        },
+                        enabled = false,
+                        trailingIcon = { Icon(Icons.Default.ArrowDropDown, null) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { expanded = true },
@@ -166,7 +169,7 @@ fun RegistrationBody(userViewModel: UserViewModel) {
                             DropdownMenuItem(
                                 text = { Text(option) },
                                 onClick = {
-                                    gender = option
+                                    selectedGender = option
                                     expanded = false
                                 }
                             )
@@ -175,19 +178,19 @@ fun RegistrationBody(userViewModel: UserViewModel) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(Modifier.height(10.dp))
 
-            LabeledField(label = "Date of Birth") {
+            LabeledField("Date of Birth") {
                 val calendar = Calendar.getInstance()
                 OutlinedTextField(
                     value = dob,
                     onValueChange = {},
                     placeholder = { Text("mm/dd/yyyy") },
-                    readOnly = true,
+                    enabled = false,
                     trailingIcon = {
                         Icon(
-                            painter = painterResource(android.R.drawable.ic_menu_my_calendar),
-                            contentDescription = null
+                            painter = painterResource(R.drawable.outline_calendar_today_24),
+                            contentDescription = "Select date"
                         )
                     },
                     modifier = Modifier
@@ -210,18 +213,18 @@ fun RegistrationBody(userViewModel: UserViewModel) {
                 )
             }
 
-            LabeledField(label = "Password") {
+            LabeledField("Password") {
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
                     placeholder = { Text("Create a strong password") },
-                    visualTransformation = if (!visibility) PasswordVisualTransformation() else VisualTransformation.None,
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
-                        IconButton(onClick = { visibility = !visibility }) {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
                                 painter = painterResource(
-                                    if (visibility) com.example.fit_buddy.R.drawable.baseline_visibility_off_24
-                                    else com.example.fit_buddy.R.drawable.baseline_visibility_24
+                                    if (passwordVisible) R.drawable.baseline_visibility_24
+                                    else R.drawable.baseline_visibility_off_24
                                 ),
                                 contentDescription = null
                             )
@@ -233,18 +236,18 @@ fun RegistrationBody(userViewModel: UserViewModel) {
                 )
             }
 
-            LabeledField(label = "Confirm Password") {
+            LabeledField("Confirm Password") {
                 OutlinedTextField(
-                    value = confirmPass,
-                    onValueChange = { confirmPass = it },
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
                     placeholder = { Text("Re-enter your password") },
-                    visualTransformation = if (!visibility) PasswordVisualTransformation() else VisualTransformation.None,
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
-                        IconButton(onClick = { visibility = !visibility }) {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
                                 painter = painterResource(
-                                    if (visibility) com.example.fit_buddy.R.drawable.baseline_visibility_off_24
-                                    else com.example.fit_buddy.R.drawable.baseline_visibility_24
+                                    if (passwordVisible) R.drawable.baseline_visibility_24
+                                    else R.drawable.baseline_visibility_off_24
                                 ),
                                 contentDescription = null
                             )
@@ -256,43 +259,54 @@ fun RegistrationBody(userViewModel: UserViewModel) {
                 )
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(Modifier.height(20.dp))
 
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Checkbox(
-                    checked = terms,
-                    onCheckedChange = { terms = it },
-                    colors = CheckboxDefaults.colors(checkedColor = Blue, checkmarkColor = White)
+                    checked = termsAccepted,
+                    onCheckedChange = { termsAccepted = it },
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = Color.Blue,
+                        checkmarkColor = Color.White
+                    )
                 )
-                Text("I agree to terms & Condition")
+                Text("I agree to terms & conditions")
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(Modifier.height(20.dp))
 
             Button(
                 onClick = {
-                    if (!terms) {
+                    if (!termsAccepted) {
                         Toast.makeText(context, "Please agree to terms & conditions", Toast.LENGTH_SHORT).show()
-                    } else if (password != confirmPass) {
-                        Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
-                    } else {
-                        userViewModel.register(email, password) { success, message, userId ->
-                            if (success) {
-                                val model = UserModel(
-                                    userId = userId,
-                                    fullName = fullName,
-                                    email = email,
-                                    gender = gender,
-                                    dob = dob
-                                    // Password is NOT stored in the database for security
-                                )
-                                userViewModel.addUserToDatabase(userId, model) { dbSuccess, dbMsg ->
-                                    if (dbSuccess) {
-                                        activity?.finish()
-                                        Toast.makeText(context, "Account Created!", Toast.LENGTH_SHORT).show()
-                                    } else {
-                                        Toast.makeText(context, dbMsg, Toast.LENGTH_SHORT).show()
-                                    }
+                        return@Button
+                    }
+                    if (fullName.trim().isEmpty() || email.trim().isEmpty() || !email.contains("@") ||
+                        password.length < 6 || password != confirmPassword ||
+                        selectedGender.isEmpty() || dob.isEmpty()
+                    ) {
+                        Toast.makeText(context, "Please fill all fields correctly", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+
+                    userViewModel.register(email.trim(), password) { success, message, userId ->
+                        if (success) {
+                            val model = UserModel(
+                                userId = userId,
+                                fullName = fullName.trim(),
+                                email = email.trim(),
+                                dob = dob,
+                                gender = selectedGender
+                            )
+                            userViewModel.addUserToDatabase(userId, model) { dbSuccess, dbMsg ->
+                                if (dbSuccess) {
+                                    Toast.makeText(context, "Registration successful!", Toast.LENGTH_SHORT).show()
+                                    activity?.finish()
+                                } else {
+                                    Toast.makeText(context, dbMsg, Toast.LENGTH_SHORT).show()
                                 }
                             } else {
                                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -300,23 +314,26 @@ fun RegistrationBody(userViewModel: UserViewModel) {
                         }
                     }
                 },
-                modifier = Modifier.fillMaxWidth().height(55.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(55.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                contentPadding = PaddingValues(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
             ) {
                 Box(
-                    modifier = Modifier.fillMaxSize().background(
-                        Brush.horizontalGradient(colors = listOf(Color(0xFFFF4D79), Color(0xFF8A2BE2))),
-                        RoundedCornerShape(16.dp)
-                    ),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.horizontalGradient(listOf(Color(0xFFFF4D79), Color(0xFF8A2BE2))),
+                            RoundedCornerShape(16.dp)
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Text("Create Account", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
-            Spacer(modifier = Modifier.height(15.dp))
+            Spacer(Modifier.height(15.dp))
 
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                 Text("Already have an account?")
@@ -324,7 +341,7 @@ fun RegistrationBody(userViewModel: UserViewModel) {
                     " Log In",
                     color = Color(0xFFFF006E),
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { activity?.finish() }
+                    modifier = Modifier.clickable { /* TODO: navigate to login */ }
                 )
             }
         }
@@ -334,7 +351,7 @@ fun RegistrationBody(userViewModel: UserViewModel) {
 @Composable
 fun LabeledField(label: String, content: @Composable () -> Unit) {
     Text(label, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth())
-    Spacer(modifier = Modifier.height(6.dp))
+    Spacer(Modifier.height(6.dp))
     content()
-    Spacer(modifier = Modifier.height(14.dp))
+    Spacer(Modifier.height(14.dp))
 }
