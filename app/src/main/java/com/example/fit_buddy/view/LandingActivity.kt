@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.fit_buddy.repository.UserRepoImpl
 import com.example.fit_buddy.viewmodel.UserViewModel
+import com.example.fit_buddy.viewmodel.UserViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
 
 class LandingActivity : ComponentActivity() {
@@ -28,14 +29,12 @@ class LandingActivity : ComponentActivity() {
 
         setContent {
             val navController = rememberNavController()
-            val userRepo = UserRepoImpl()
 
             val viewModel: UserViewModel = viewModel(
-                factory = object : androidx.lifecycle.ViewModelProvider.Factory {
-                    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                        return UserViewModel(userRepo,this@LandingActivity) as T
-                    }
-                }
+                factory = UserViewModelFactory(
+                    application = application,
+                    repository = UserRepoImpl()
+                )
             )
 
             NavHost(
