@@ -157,10 +157,16 @@ fun FeedSection(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 AsyncImage(
-                                    model = user.profilePicUrl.ifEmpty { R.drawable.outline_contacts_product_24 },
+
+                                    model = user.profileImage?.takeIf { it.isNotEmpty() } ?: R.drawable.outline_contacts_product_24,
                                     contentDescription = null,
-                                    modifier = Modifier.size(40.dp).clip(CircleShape).background(Color.LightGray),
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.LightGray),
                                     contentScale = ContentScale.Crop,
+                                    // Optional: Use a placeholder while loading
+                                    placeholder = painterResource(R.drawable.outline_contacts_product_24),
                                     error = painterResource(R.drawable.outline_contacts_product_24)
                                 )
                                 Spacer(Modifier.width(12.dp))

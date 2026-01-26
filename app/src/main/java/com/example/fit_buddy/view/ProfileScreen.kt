@@ -13,13 +13,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fit_buddy.R
 import com.example.fit_buddy.ui.theme.backgroundLightLavender
+import com.example.fit_buddy.viewmodel.FeedViewModel
 
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(viewModel: FeedViewModel) {
 
     var selectedIndex by remember { mutableStateOf(0) }
 
@@ -30,12 +33,12 @@ fun ProfileScreen() {
     ) {
         when (selectedIndex) {
             0 -> ProfileMainScreen { selectedIndex = it }
-            1 -> EditProfileScreenComposable ()
-//            2 -> FriendsScreenComposable ()
-//            3 -> NotificationScreenComposable ()
-            3 -> PrivacySecurityScreenComposable ()
-//            4 -> AppSettingScreenComposable ()
-            5 -> HelpSupportScreenComposable()
+            1 -> EditProfileScreenComposable (
+                onBackClick = { selectedIndex = 0 }   )
+//            2 -> FriendListScreen()
+            3 -> PrivacySecurityScreenComposable (onBackClick = { selectedIndex = 0 })
+            4 -> AppSettingsScreenComposable (onBackClick = { selectedIndex = 0 })
+            5 -> HelpSupportScreenComposable(onBackClick = { selectedIndex = 0 })
         }
     }
 }
@@ -164,9 +167,9 @@ fun LogoutItem(onClick: () -> Unit) {
         )
     }
 }
-
-@Preview
-@Composable
-fun ProfilePreview(){
-    ProfileScreen()
-}
+//
+//@Preview
+//@Composable
+//fun ProfilePreview(){
+//    ProfileScreen(v)
+//}

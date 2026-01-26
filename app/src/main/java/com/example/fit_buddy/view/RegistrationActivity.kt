@@ -1,7 +1,7 @@
 package com.example.fit_buddy.view
 
-import android.R
 import android.app.Activity
+import android.app.Application
 import android.app.DatePickerDialog
 import android.os.Bundle
 import android.widget.Toast
@@ -11,59 +11,33 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.Blue
-import androidx.compose.ui.graphics.Color.Companion.White
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.toSize
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.fit_buddy.R
 import com.example.fit_buddy.model.UserModel
+import com.example.fit_buddy.repository.UserRepo
 import com.example.fit_buddy.repository.UserRepoImpl
 import com.example.fit_buddy.viewmodel.UserViewModel
 import java.util.Calendar
@@ -73,36 +47,53 @@ class RegistrationActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-           RegistrationBody()
+            RegistrationBody()
         }
+    }
+}
+
+// Factory
+class UserViewModelFactory(
+    private val application: Application,
+    private val repository: UserRepo
+) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(UserViewModel::class.java)) {
+            return UserViewModel(application, repository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
 
 @Composable
 fun RegistrationBody() {
     var passwordVisible by remember { mutableStateOf(false) }
-    var confirmPasswordVisible by remember { mutableStateOf(false) }
-    var visibility by remember { mutableStateOf(false) }
 
+    val context = LocalContext.current
+    val application = context.applicationContext as Application
 
-    var userViewModel= remember { UserViewModel(UserRepoImpl()) }
+    val userViewModel: UserViewModel = viewModel(
+        factory = UserViewModelFactory(
+            application = application,
+            repository = UserRepoImpl()
+        )
+    )
 
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPass by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var selectedGender by remember { mutableStateOf("") }
     var dob by remember { mutableStateOf("") }
-    var terms by remember { mutableStateOf(false) }
-    val context = LocalContext.current
+    var termsAccepted by remember { mutableStateOf(false) }
+
     val activity = context as? Activity
-    var selectedDate by remember { mutableStateOf("") }
 
     val gradientBg = Brush.verticalGradient(
         colors = listOf(Color(0xFFFCE4EC), Color(0xFFF3E5F5))
     )
-
-
 
     Box(
         modifier = Modifier
@@ -112,21 +103,13 @@ fun RegistrationBody() {
             .border(3.dp, Color.Black, RoundedCornerShape(30.dp))
             .padding(20.dp)
     ) {
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
-            // App Logo
-            Text(
-                "FitBuddy",
-                fontSize = 38.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF1A1A1A),
-            )
+            Text("FitBuddy", fontSize = 38.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A))
 
             Text(
                 "Start your fitness journey",
@@ -135,8 +118,7 @@ fun RegistrationBody() {
                 modifier = Modifier.padding(bottom = 20.dp)
             )
 
-            // =================== FULL NAME ===================
-            LabeledField(label = "Full Name") {
+            LabeledField("Full Name") {
                 OutlinedTextField(
                     value = fullName,
                     onValueChange = { fullName = it },
@@ -146,8 +128,7 @@ fun RegistrationBody() {
                 )
             }
 
-            // =================== EMAIL ===================
-            LabeledField(label = "Email") {
+            LabeledField("Email") {
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
@@ -158,25 +139,17 @@ fun RegistrationBody() {
                 )
             }
 
-            /// =================== GENDER ===================
-            LabeledField(label = "Gender") {
-
+            LabeledField("Gender") {
                 var expanded by remember { mutableStateOf(false) }
-                var selectedGender by remember { mutableStateOf("") }
-                val options = listOf("Female", "Male", "Other")
+                val options = listOf("Female", "Male", "Other", "Prefer not to say")
 
                 Box {
                     OutlinedTextField(
-                        value = selectedGender,
+                        value = gender,
                         onValueChange = {},
                         placeholder = { Text("Select Gender") },
-                        enabled = false, // IMPORTANT
-                        trailingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = null
-                            )
-                        },
+                        enabled = false,
+                        trailingIcon = { Icon(Icons.Default.ArrowDropDown, null) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { expanded = true },
@@ -184,27 +157,21 @@ fun RegistrationBody() {
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color.Black,
                             unfocusedBorderColor = Color.Black,
-                            disabledBorderColor = Color.Black,
-                            focusedLabelColor = Color.Black,
-                            cursorColor = Color.Black
+                            disabledBorderColor = Color.Black
                         )
                     )
 
                     DropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(0.8f)
                     ) {
-                        options.forEach {
+                        options.forEach { option ->
                             DropdownMenuItem(
-                                text = { Text(it) },
+                                text = { Text(option) },
                                 onClick = {
-
-                                        selectedGender = it
-                                        gender = it
-                                        expanded = false
-
-
+                                    selectedGender = option
+                                    expanded = false
                                 }
                             )
                         }
@@ -212,26 +179,19 @@ fun RegistrationBody() {
                 }
             }
 
+            Spacer(Modifier.height(10.dp))
 
-
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // =================== DATE OF BIRTH ===================
-            LabeledField(label = "Date of Birth") {
-
-                val context = LocalContext.current
+            LabeledField("Date of Birth") {
                 val calendar = Calendar.getInstance()
-
                 OutlinedTextField(
                     value = dob,
                     onValueChange = {},
                     placeholder = { Text("mm/dd/yyyy") },
-                    enabled = false, // IMPORTANT
+                    enabled = false,
                     trailingIcon = {
                         Icon(
-                            painter = painterResource(R.drawable.ic_menu_my_calendar),
-                            contentDescription = null
+                            painter = painterResource(R.drawable.outline_calendar_today_24),
+                            contentDescription = "Select date"
                         )
                     },
                     modifier = Modifier
@@ -239,9 +199,7 @@ fun RegistrationBody() {
                         .clickable {
                             DatePickerDialog(
                                 context,
-                                { _, y, m, d ->
-                                    dob = "${m + 1}/$d/$y"
-                                },
+                                { _, y, m, d -> dob = "${m + 1}/$d/$y" },
                                 calendar.get(Calendar.YEAR),
                                 calendar.get(Calendar.MONTH),
                                 calendar.get(Calendar.DAY_OF_MONTH)
@@ -251,31 +209,24 @@ fun RegistrationBody() {
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Color.Black,
                         unfocusedBorderColor = Color.Black,
-                        disabledBorderColor = Color.Black,
-                        focusedLabelColor = Color.Black,
-                        cursorColor = Color.Black
+                        disabledBorderColor = Color.Black
                     )
                 )
             }
 
-            // =================== PASSWORD ===================
-            LabeledField(label = "Password") {
+            LabeledField("Password") {
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
                     placeholder = { Text("Create a strong password") },
-                    visualTransformation = if (!visibility) PasswordVisualTransformation() else VisualTransformation.None,
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
-                        IconButton (onClick = {
-                            visibility = !visibility
-                        }) {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
-                                painter = if (visibility)
-                                    painterResource(com.example.fit_buddy.R.drawable.baseline_visibility_off_24)
-                                else
-                                    painterResource(
-                                        com.example.fit_buddy.R.drawable.baseline_visibility_24
-                                    ),
+                                painter = painterResource(
+                                    if (passwordVisible) R.drawable.baseline_visibility_24
+                                    else R.drawable.baseline_visibility_off_24
+                                ),
                                 contentDescription = null
                             )
                         }
@@ -286,24 +237,19 @@ fun RegistrationBody() {
                 )
             }
 
-            // =================== CONFIRM PASSWORD ===================
-            LabeledField(label = "Confirm Password") {
+            LabeledField("Confirm Password") {
                 OutlinedTextField(
-                    value = confirmPass,
-                    onValueChange = { confirmPass = it },
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
                     placeholder = { Text("Re-enter your password") },
-                    visualTransformation = if (!visibility) PasswordVisualTransformation() else VisualTransformation.None,
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
-                        IconButton (onClick = {
-                            visibility = !visibility
-                        }) {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
-                                painter = if (visibility)
-                                    painterResource(com.example.fit_buddy.R.drawable.baseline_visibility_off_24)
-                                else
-                                    painterResource(
-                                        com.example.fit_buddy.R.drawable.baseline_visibility_24
-                                    ),
+                                painter = painterResource(
+                                    if (passwordVisible) R.drawable.baseline_visibility_24
+                                    else R.drawable.baseline_visibility_off_24
+                                ),
                                 contentDescription = null
                             )
                         }
@@ -314,110 +260,100 @@ fun RegistrationBody() {
                 )
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(Modifier.height(20.dp))
 
-            Row (modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically){
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Checkbox(
-                    checked = terms,
-                    onCheckedChange ={data ->
-                        terms=data
-                    },
+                    checked = termsAccepted,
+                    onCheckedChange = { termsAccepted = it },
                     colors = CheckboxDefaults.colors(
-                        checkedColor= Blue,
-                        checkmarkColor = White,
+                        checkedColor = Color.Blue,
+                        checkmarkColor = Color.White
                     )
                 )
-                Text("I agree to terms & Condition")
+                Text("I agree to terms & conditions")
             }
-            Spacer(modifier = Modifier.height(20.dp))
 
+            Spacer(Modifier.height(20.dp))
 
-            // =================== CREATE ACCOUNT BUTTON ===================
             Button(
-                onClick = { if (!terms){
-                    Toast.makeText(context,"Please agree to terms & conditions", Toast.LENGTH_SHORT).show()
-                }
-                else {
-                    userViewModel.register(email,password){
-                            success,message, userId->
-                        if (success){
-                            var model= UserModel(
-                                userId,
-                                fullName = fullName,
-                                email=email,
-                                gender = gender ,
-                                password= password,
-                                dob = dob
-                            )
-                            userViewModel.addUserTODatabase(userId, model) { success, msg ->
-                                if (success) {
-                                    activity?.finish()
-                                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                                } else {
-                                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                onClick = {
+                    if (!termsAccepted) {
+                        Toast.makeText(context, "Please agree to terms & conditions", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    if (fullName.trim().isEmpty() || email.trim().isEmpty() || !email.contains("@") ||
+                        password.length < 6 || password != confirmPassword ||
+                        selectedGender.isEmpty() || dob.isEmpty()
+                    ) {
+                        Toast.makeText(context, "Please fill all fields correctly", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
 
+                    userViewModel.register(email.trim(), password) { success, message, userId ->
+                        if (success) {
+                            val model = UserModel(
+                                userId = userId,
+                                fullName = fullName.trim(),
+                                email = email.trim(),
+                                dob = dob,
+                                gender = selectedGender
+                            )
+                            userViewModel.addUserToDatabase(userId, model) { dbSuccess, dbMsg ->
+                                if (dbSuccess) {
+                                    Toast.makeText(context, "Registration successful!", Toast.LENGTH_SHORT).show()
+                                    activity?.finish()
+                                } else {
+                                    Toast.makeText(context, dbMsg, Toast.LENGTH_SHORT).show()
                                 }
                             }
-                        } else {
-                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                            //                            else {
+//                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+//                            }
                         }
-                    }}},
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(55.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                contentPadding = PaddingValues(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(
-                            Brush.horizontalGradient(
-                                colors = listOf(Color(0xFFFF4D79), Color(0xFF8A2BE2))
-                            ),
+                            Brush.horizontalGradient(listOf(Color(0xFFFF4D79), Color(0xFF8A2BE2))),
                             RoundedCornerShape(16.dp)
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        "Create Account",
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text("Create Account", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
-            Spacer(modifier = Modifier.height(15.dp))
+            Spacer(Modifier.height(15.dp))
 
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                 Text("Already have an account?")
                 Text(
                     " Log In",
                     color = Color(0xFFFF006E),
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { }
+                    modifier = Modifier.clickable { /* TODO: navigate to login */ }
                 )
             }
         }
     }
 }
+
 @Composable
 fun LabeledField(label: String, content: @Composable () -> Unit) {
     Text(label, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth())
-    Spacer(modifier = Modifier.height(6.dp))
+    Spacer(Modifier.height(6.dp))
     content()
-    Spacer(modifier = Modifier.height(14.dp))
-
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    RegistrationBody()
+    Spacer(Modifier.height(14.dp))
 }

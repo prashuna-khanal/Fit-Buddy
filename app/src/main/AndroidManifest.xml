@@ -23,7 +23,7 @@
         android:theme="@style/Theme.Fit_Buddy"
         tools:replace="android:fullBackupContent">
         <activity
-            android:name=".view.SplashActivity1"
+            android:name=".view.SplashActivity"
             android:exported="true"
             android:label="@string/title_activity_splash1"
             android:theme="@style/Theme.Fit_Buddy">
@@ -50,7 +50,7 @@
         <!-- android:exported="true"> -->
         <activity
             android:name=".view.LandingActivity"
-            android:exported="false"
+            android:exported="true"
             android:label="@string/title_activity_landing"
             android:theme="@style/Theme.Fit_Buddy">
 <!--            <intent-filter>-->

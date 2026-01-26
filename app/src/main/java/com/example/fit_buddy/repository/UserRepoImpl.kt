@@ -52,19 +52,7 @@ class UserRepoImpl : UserRepo {
                 }
             }
     }
-//
-//    override fun register(email: String, password: String, callback: (Boolean, String, String) -> Unit) {
-//        auth.createUserWithEmailAndPassword(email, password)
-//            .addOnCompleteListener { task ->
-//                if (task.isSuccessful) {
-//                    val userId = auth.currentUser?.uid ?: ""
-//
-//                    callback(true, "Account Created Successfully", userId)
-//                } else {
-//                    callback(false, task.exception?.message ?: "Registration Failed", "")
-//                }
-//            }
-//    }
+
 
     override fun addUserToDatabase(userId: String, userModel: UserModel, callback: (Boolean, String) -> Unit) {
 
