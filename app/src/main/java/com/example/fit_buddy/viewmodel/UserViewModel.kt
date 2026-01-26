@@ -41,9 +41,13 @@ class UserViewModel(
     private val _user = MutableLiveData<UserModel?>()
     val user: LiveData<UserModel?> get() = _user
 
+    // Initialize by loading the current user immediately
+    init {
+        loadCurrentUser()
+    }
+
     fun loadCurrentUser() {
         val userId = repository.getCurrentUserId() ?: return
-
         viewModelScope.launch {
             repository.getUserData(userId).collect { userData ->
                 _user.postValue(userData)
@@ -99,11 +103,7 @@ class UserViewModel(
     fun getUserData(userId: String): Flow<UserModel?> =
         repository.getUserData(userId)
 
-    fun updateUserProfile(
-        userId: String,
-        userModel: UserModel,
-        callback: (Boolean, String) -> Unit
-    ) {
+    fun updateUserProfile(userId: String, userModel: UserModel, callback: (Boolean, String) -> Unit) {
         repository.updateUserProfile(userId, userModel, callback)
     }
 

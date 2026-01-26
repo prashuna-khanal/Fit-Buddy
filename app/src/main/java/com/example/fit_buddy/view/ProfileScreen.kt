@@ -18,9 +18,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fit_buddy.R
 import com.example.fit_buddy.ui.theme.backgroundLightLavender
+import com.example.fit_buddy.viewmodel.FeedViewModel
 
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(viewModel: FeedViewModel) {
 
     var selectedIndex by remember { mutableStateOf(0) }
 
