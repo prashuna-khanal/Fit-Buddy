@@ -26,6 +26,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fit_buddy.R
 import com.example.fit_buddy.model.ExerciseModel
 import com.example.fit_buddy.ui.theme.*
+import com.example.fit_buddy.viewmodel.UserViewModel
 import com.example.fitbuddy.repository.PoseRepo
 import com.example.fitbuddy.view.AIScreen
 import com.example.fitbuddy.viewmodel.PoseViewModel
@@ -37,13 +38,20 @@ class ExerciseActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            ExerciseActivityScreen()
+
+            val userRepo = com.example.fit_buddy.repository.UserRepoImpl()
+            val userViewModel: UserViewModel = viewModel(factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+                override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                    return UserViewModel(userRepo,this@ExerciseActivity) as T
+                }
+            })
+            ExerciseActivityScreen(userViewModel=userViewModel)
         }
     }
 }
 
 @Composable
-fun ExerciseActivityScreen() {
+fun ExerciseActivityScreen(userViewModel: UserViewModel) {
     val context = LocalContext.current
     val poseRepo = remember { PoseRepo(context) }
     val poseViewModel = remember { PoseViewModel(poseRepo) }
@@ -207,7 +215,10 @@ fun ExerciseActivityScreen() {
                             "Jumping Jacks" -> poseViewModel.setExerciseType(PoseViewModel.ExerciseType.JUMPING_JACK)
                             "Mountain Climbers" -> poseViewModel.setExerciseType(PoseViewModel.ExerciseType.MOUNTAIN_CLIMBER)
                         }
-                        showAIScreen = true
+//                        start timer when start now is clicked
+                        showAIScreen= true
+//                        isTimerRunning=true
+
                     }
                 )
             }

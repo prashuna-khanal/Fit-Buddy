@@ -108,6 +108,8 @@ fun StreakCard(streakData: WorkoutViewModel.StreakData) {
             .background(Brush.verticalGradient(listOf(streakGradientStart, streakGradientEnd)))
             .padding(24.dp)
     ) {
+
+
         Column {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {

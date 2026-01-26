@@ -5,7 +5,7 @@ data class UserModel (
     val fullName: String = "",
     val email: String = "",
     val dob: String = "",
-    val profilePicUrl: String = "",
+    val profileImage: String = "",
     val gender: String = "",
     val weight: String = "",
     val height: String = ""
@@ -17,7 +17,7 @@ data class UserModel (
             "fullName" to fullName,
             "email" to email,
             "dob" to dob,
-            "profilePicUrl" to profilePicUrl,
+            "profileImage" to profileImage,
             "gender" to gender,
             "weight" to weight,
             "height" to height

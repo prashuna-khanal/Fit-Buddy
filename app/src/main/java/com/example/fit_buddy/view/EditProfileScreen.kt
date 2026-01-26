@@ -1,5 +1,9 @@
 package com.example.fit_buddy.view
 
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -13,6 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -20,18 +26,58 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.rememberAsyncImagePainter
 import com.example.fit_buddy.R
+import com.example.fit_buddy.model.UserModel
 import com.example.fit_buddy.ui.theme.lavender400
+import com.example.fit_buddy.viewmodel.UserViewModel
 
 
 @Composable
-fun EditProfileScreenComposable() {
+fun EditProfileScreenComposable(
+    viewModel: UserViewModel = viewModel()
+) {
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    val userId = viewModel.getCurrentUserId()
 
     var name by remember { mutableStateOf("SAM") }
     var email by remember { mutableStateOf("sam@gmail.com") }
     var weight by remember{mutableStateOf("50kg")}
     var password by remember { mutableStateOf("password123") }
     var passwordVisible by remember { mutableStateOf(false) }
+
+    val user by viewModel
+        .getUserData(userId ?: "")
+        .collectAsState(initial = null)
+
+    LaunchedEffect(userId) {
+        if (userId != null) {
+            viewModel.getUserData(userId).collect { user ->
+                user?.let {
+                    name = it.fullName
+                    email = it.email
+                    weight = it.weight
+                }
+            }
+        }
+    }
+    val context = LocalContext.current
+
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.GetContent()
+            ) { uri ->
+        uri?.let {
+            selectedImageUri = it
+            viewModel.uploadProfileImage(it) { success, msg ->
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
 
     Column(
         modifier = Modifier
@@ -87,12 +133,18 @@ fun EditProfileScreenComposable() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
-                painter = painterResource(R.drawable.img),
-                contentDescription = null,
+                painter = rememberAsyncImagePainter(
+                    model = selectedImageUri ?: user?.profileImage
+                ),
+                contentDescription = "Profile Image",
                 modifier = Modifier
                     .size(100.dp)
                     .clip(CircleShape)
                     .border(4.dp, Color.White, CircleShape)
+                    .clickable {
+                        imagePickerLauncher.launch("image/*")
+                    },
+                contentScale = ContentScale.Crop
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -100,8 +152,12 @@ fun EditProfileScreenComposable() {
             Text(
                 text = "Change Picture",
                 fontSize = 13.sp,
-                color = Color.Gray
+                color = Color.Gray,
+                modifier = Modifier.clickable {
+                    imagePickerLauncher.launch("image/*")
+                }
             )
+
         }
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -170,25 +226,93 @@ fun EditProfileScreenComposable() {
         Spacer(modifier = Modifier.height(30.dp))
 
         // UPDATE BUTTON
-        Button(
-            onClick = { /* Save profile */ },
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .height(52.dp),
-            shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1E1E1E)
-            )
+                .fillMaxSize()
+                .background(Color.White)
         ) {
-            Text(
-                text = "Update",
-                color = Color.White,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold
-            )
+
+            // UPDATE BUTTON
+            Button(
+                onClick = {
+                    if (userId == null) return@Button
+
+                    val updatedUser = UserModel(
+                        userId = userId,
+                        fullName = name,
+                        email = email,
+                        weight = weight
+                    )
+
+                    viewModel.updateUserProfile(userId, updatedUser) { success, msg ->
+                        // Toast / Snackbar if needed
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .height(52.dp),
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Text("Update")
+            }
         }
     }
+    Spacer(modifier = Modifier.height(16.dp))
+
+    OutlinedButton(
+        onClick = { showDeleteDialog = true },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .height(52.dp),
+        shape = RoundedCornerShape(14.dp),
+        colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = Color.Red
+        )
+    ) {
+        Text("Delete Account", fontWeight = FontWeight.Bold)
+    }
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = {
+                Text("Delete Account")
+            },
+            text = {
+                Text(
+                    "Are you sure you want to permanently delete your account? " +
+                            "This action cannot be undone."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+
+                        val userId = viewModel.getCurrentUserId() ?: return@TextButton
+
+                        viewModel.deleteAccount(userId) { success, msg ->
+                            if (success) {
+                                viewModel.logout()
+                                // 👉 navigate to Login screen here
+                            }
+                        }
+                    }
+                ) {
+                    Text("Delete", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDeleteDialog = false }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
 }
 
 @Composable
@@ -197,6 +321,7 @@ fun ProfileInputField(
     value: String,
     onValueChange: (String) -> Unit
 ) {
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -220,8 +345,8 @@ fun ProfileInputField(
         )
     }
 }
-@Preview
-@Composable
-fun EditProfileScreenPreview() {
-    EditProfileScreenComposable()
-}
+//@Preview
+//@Composable
+//fun EditProfileScreenPreview() {
+//    EditProfileScreenComposable(viewModel: UserViewModel)
+//}
