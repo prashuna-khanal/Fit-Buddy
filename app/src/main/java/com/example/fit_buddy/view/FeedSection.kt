@@ -1,19 +1,15 @@
-
 package com.example.fit_buddy.view
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import com.example.fit_buddy.model.FriendRequest
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add // Required for the + button
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.*
@@ -23,11 +19,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -36,47 +33,41 @@ import com.example.fit_buddy.model.FeedPost
 import com.example.fit_buddy.ui.theme.backgroundLightLavender
 import com.example.fit_buddy.ui.theme.textMuted
 import com.example.fit_buddy.ui.theme.textPrimary
-import com.example.fit_buddy.model.samplePosts
-import kotlinx.coroutines.Dispatchers
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedSection(
-    myUsername: String = "BABITA",
     viewModel: com.example.fit_buddy.viewmodel.FeedViewModel,
     onRequestsClick: () -> Unit,
     onProfileClick: (String) -> Unit
 ) {
+    val context = LocalContext.current
+    //  state from ViewModel
+    val friendsPosts by viewModel.friendsPosts.observeAsState(emptyList())
+    val myPosts by viewModel.myPosts.observeAsState(emptyList())
+    val allUsers by viewModel.allUsers.observeAsState(emptyList())
+    val requests by viewModel.friendRequests.observeAsState(emptyList())
 
-    //observe live post
-    val livePosts by viewModel.friendsPosts.observeAsState(emptyList())
-//    search actions variables
+    // UI state
     var isSearching by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
-    val allUsers by viewModel.allUsers.observeAsState(emptyList())
-
-// seeing list of friend from repository
-    val requests by viewModel.friendRequests.observeAsState(emptyList())
-    val dummyPosts = remember { samplePosts() }
-    val displayPosts = if(livePosts.isEmpty()) dummyPosts else livePosts
-    // State variables
     var selectedImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
     var showCaptionScreen by remember { mutableStateOf(false) }
-    var showMyPostsScreen by remember { mutableStateOf(false) }
     var selectedFilter by remember { mutableStateOf("All") }
 
-    val posts = remember { samplePosts() }
     val buttonLavender = Color(0xFFD9C8F9)
-//    show users only after entering more
-    val filteredUsers = if (searchQuery.length >= 1) {
-        allUsers.filter {
-            it.fullName.contains(searchQuery, ignoreCase = true)
-        }
-    } else {
-        emptyList()
+
+    // search logic doesnot include logged in user
+    val filteredUsers = remember(searchQuery, allUsers) {
+        if (searchQuery.length >= 1) {
+            allUsers.filter {
+                it.fullName.contains(searchQuery, ignoreCase = true) &&
+                        it.userId != viewModel.currentUserId
+            }
+        } else emptyList()
     }
 
-    // Image Picker Launcher
+    // image picker
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
@@ -86,7 +77,7 @@ fun FeedSection(
         }
     }
 
-    // navigation logic
+    // caption entry
     if (showCaptionScreen && selectedImageUri != null) {
         CaptionEntryScreen(
             uri = selectedImageUri!!,
@@ -95,36 +86,25 @@ fun FeedSection(
                 selectedImageUri = null
             },
             onUpload = { finalCaption ->
-                viewModel.sharePost(selectedImageUri!!, finalCaption, viewModel.currentUserId)
+                //  handles its own currentUserId internally
+                viewModel.sharePost(selectedImageUri!!, finalCaption)
                 showCaptionScreen = false
                 selectedImageUri = null
-                showMyPostsScreen = true
-            }
-        )
-    } else if (showMyPostsScreen) {
-        // call  MyPostsScreen.kt file
-        MyPostsScreen(
-            viewModel = viewModel,
-            onBack = {
-                showMyPostsScreen = false
-                selectedFilter = "All"
+                selectedFilter = "My Post" // navigate to MyPost to see the upload
             }
         )
     } else {
-        // main feed
         Scaffold(
             topBar = {
                 CenterAlignedTopAppBar(
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = backgroundLightLavender
-                    ),
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundLightLavender),
                     navigationIcon = {
                         IconButton(onClick = {}) {
-                            Icon(painterResource(R.drawable.outline_arrow_back_ios_24), null)
+                            Icon(painterResource(R.drawable.baseline_arrow_back_ios_24),null)
                         }
                     },
                     title = {
-                        if (isSearching){
+                        if (isSearching) {
                             TextField(
                                 value = searchQuery,
                                 onValueChange = { searchQuery = it },
@@ -132,50 +112,29 @@ fun FeedSection(
                                 modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
                                 singleLine = true,
                                 colors = TextFieldDefaults.colors(
-                                    focusedTextColor = Color.Black,
-                                    unfocusedTextColor = Color.Black,
                                     focusedContainerColor = Color.Transparent,
                                     unfocusedContainerColor = Color.Transparent,
                                     focusedIndicatorColor = Color.Transparent,
                                     unfocusedIndicatorColor = Color.Transparent
-                                ),
-                                textStyle = TextStyle(fontSize = 18.sp, color = Color.Black)
+                                )
                             )
-
-
-                        }else {
-                            Text(
-                                "Feed",
-                                style = TextStyle(fontWeight = FontWeight.SemiBold),
-                                fontSize = 24.sp
-                            )
+                        } else {
+                            Text("Feed", style = TextStyle(fontWeight = FontWeight.SemiBold), fontSize = 24.sp)
                         }
                     },
+
                     actions = {
-//                        search
-//                       search
                         IconButton(onClick = {
                             isSearching = !isSearching
-                            if(!isSearching) searchQuery =""
+                            if (!isSearching) searchQuery = ""
                         }) {
-                            Icon(
-                                painter = painterResource(id = if(isSearching)R.drawable.outline_arrow_downward_24 else R.drawable.outline_search_24  ),
-                                contentDescription = null,
-                                tint = Color.Black
-                            )
+                            Icon(painterResource(if (isSearching) R.drawable.outline_arrow_downward_24 else R.drawable.outline_search_24), null)
                         }
-                        // + FOR UPLOAD
                         IconButton(onClick = { launcher.launch("image/*") }) {
-                            Icon(imageVector = Icons.Default.Add, contentDescription = "Post")
+                            Icon(Icons.Default.Add, contentDescription = "Post")
                         }
                         IconButton(onClick = onRequestsClick) {
-                            BadgedBox(
-                                badge = {
-                                    if (requests.isNotEmpty()) {
-                                        Badge { Text(requests.size.toString()) }
-                                    }
-                                }
-                            ) {
+                            BadgedBox(badge = { if (requests.isNotEmpty()) Badge { Text(requests.size.toString()) } }) {
                                 Icon(painterResource(R.drawable.outline_contacts_product_24), null)
                             }
                         }
@@ -183,161 +142,139 @@ fun FeedSection(
                 )
             }
         ) { padding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .background(backgroundLightLavender)
-            ) {
-//                for search
-            if (isSearching && searchQuery.length>=2){
-                LazyColumn (
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.White)
-                ){
-                    items(filteredUsers) { user ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
+            Column(modifier = Modifier.fillMaxSize().padding(padding).background(backgroundLightLavender)) {
+
+                if (isSearching && searchQuery.length >= 2) {
+                    // search result list
+                    LazyColumn(modifier = Modifier.fillMaxSize().background(Color.White)) {
+                        items(filteredUsers) { user ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth().clickable {
                                     onProfileClick(user.userId)
                                     isSearching = false
-                                    searchQuery = "" //khali for next time
-                                }
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                                    searchQuery = ""
+                                }.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                AsyncImage(
 
-                            // Profile Placeholder
-                            AsyncImage(
-                                model = user.profilePicUrl,
-                                contentDescription = null,
-                                modifier = Modifier.size(40.dp).clip(CircleShape).background(Color.LightGray),
-                                contentScale = ContentScale.Crop,
-                                error = painterResource(id = R.drawable.outline_contacts_product_24)
-                            )
-                            Spacer(Modifier.width(12.dp))
-                            Text(user.fullName, fontWeight = FontWeight.Medium, color = Color.Black)
+                                    model = user.profileImage?.takeIf { it.isNotEmpty() } ?: R.drawable.outline_contacts_product_24,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.LightGray),
+                                    contentScale = ContentScale.Crop,
+                                    // Optional: Use a placeholder while loading
+                                    placeholder = painterResource(R.drawable.outline_contacts_product_24),
+                                    error = painterResource(R.drawable.outline_contacts_product_24)
+                                )
+                                Spacer(Modifier.width(12.dp))
+                                Text(user.fullName, fontWeight = FontWeight.Medium, color = Color.Black)
+                            }
                         }
                     }
-                }
-                }else
-                {
-
-
-                // filtering Buttons Row
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Button(
-                        onClick = { selectedFilter = "All" },
-                        colors = ButtonDefaults.buttonColors(containerColor = buttonLavender),
-                        modifier = Modifier.weight(1f)
+                } else {
+                    // filtering in All POst vs mypost
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Text("All", color = if (selectedFilter == "All") Color.Blue else textPrimary)
-                    }
-
-                    Button(
-                        onClick = {
-                            selectedFilter = "My Post"
-                            showMyPostsScreen = true
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = buttonLavender),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("My Post", color = if (selectedFilter == "My Post") Color.Blue else textPrimary)
-                    }
-                }
-
-                // main feed List
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(18.dp),
-                    contentPadding = PaddingValues(bottom = 24.dp)
-                ) {
-                    items(displayPosts) { post ->
-                        FeedCard(
-                            post = post,
-                            currentUserId = viewModel.currentUserId,
-                            onUserClick = { onProfileClick(post.username) },
-                            onLikeClick = {
-                                viewModel.toggleLike(postId = post.id)
+                        listOf("All", "My Post").forEach { filter ->
+                            Button(
+                                onClick = { selectedFilter = filter },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (selectedFilter == filter) Color(0xFF6200EE) else buttonLavender
+                                ),
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(filter, color = if (selectedFilter == filter) Color.White else textPrimary)
                             }
-                        )
+                        }
+                    }
+
+
+                    val displayPosts = if (selectedFilter == "All") friendsPosts else myPosts
+
+                    if (displayPosts.isEmpty()) {
+                        EmptyStateUI(isAll = (selectedFilter == "All")) { isSearching = true }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxWidth().weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(18.dp),
+                            contentPadding = PaddingValues(bottom = 24.dp)
+                        ) {
+                            items(displayPosts, key = { it.id }) { post ->
+                                FeedCard(
+                                    post = post,
+                                    currentUserId = viewModel.currentUserId,
+                                    onUserClick = { onProfileClick(post.userId) },
+                                    onLikeClick = { viewModel.toggleLike(post.id) },
+                                    onDeleteClick = if (selectedFilter == "My Post") {
+                                        { viewModel.deletePost(post.id) }
+                                    } else null
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
     }
 }
-}
+
 @Composable
 fun FeedCard(
     post: FeedPost,
-    currentUserId:String,
+    currentUserId: String,
     onUserClick: () -> Unit,
     onLikeClick: () -> Unit,
     onDeleteClick: (() -> Unit)? = null
 ) {
-//    check liked or not
     val isLikedByMe = post.likedBy.containsKey(currentUserId)
+
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column {
-            //header
+
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-                    .clickable { onUserClick() },
+                modifier = Modifier.fillMaxWidth().padding(12.dp).clickable { onUserClick() },
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(Color.LightGray))
-                Spacer(Modifier.width(8.dp))
-                Text(text = post.username, fontWeight = FontWeight.Bold)
+                AsyncImage(
+                    model = post.getSafeProfilePic().ifEmpty { R.drawable.outline_contacts_product_24 },
+                    contentDescription = null,
+                    modifier = Modifier.size(36.dp).clip(CircleShape).background(Color.LightGray),
+                    contentScale = ContentScale.Crop,
+                    error = painterResource(R.drawable.outline_contacts_product_24)
+                )
+                Spacer(Modifier.width(10.dp))
+                Text(text = post.username, fontWeight = FontWeight.Bold, fontSize = 16.sp)
 
                 Spacer(Modifier.weight(1f))
 
-                // delete button only for postscreen
                 if (onDeleteClick != null) {
                     IconButton(onClick = onDeleteClick) {
-                        Icon(Icons.Default.Delete,
-                            contentDescription = "Delete Post",
-                            tint = Color.Gray
-                        )
+                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Gray)
                     }
                 }
             }
 
-            //  image
+//            posted image
             AsyncImage(
-                model = post.profilePic ?: R.drawable.outline_contacts_product_24,
+                model = post.imageUrl,
                 contentDescription = null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(350.dp),
-                contentScale = ContentScale.Crop
+                modifier = Modifier.fillMaxWidth().height(350.dp).background(Color.LightGray),
+                contentScale = ContentScale.Crop,
+                error = painterResource(R.drawable.outline_contacts_product_24)
             )
 
-            // like Bar
+
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onLikeClick) {
@@ -354,7 +291,7 @@ fun FeedCard(
             if (post.caption.isNotEmpty()) {
                 Text(
                     text = post.caption,
-                    modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
                     fontSize = 14.sp,
                     color = Color.DarkGray
                 )
@@ -363,3 +300,18 @@ fun FeedCard(
     }
 }
 
+@Composable
+fun EmptyStateUI(isAll: Boolean, onFindFriends: () -> Unit) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(painterResource(R.drawable.outline_contacts_product_24), null, Modifier.size(64.dp), Color.Gray)
+            Spacer(Modifier.height(16.dp))
+            Text(if (isAll) "Your feed is empty." else "You haven't posted yet.", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            if (isAll) {
+                Text("Connect with friends to see updates!", textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 32.dp))
+                Spacer(Modifier.height(20.dp))
+                Button(onClick = onFindFriends) { Text("Find Friends") }
+            }
+        }
+    }
+}

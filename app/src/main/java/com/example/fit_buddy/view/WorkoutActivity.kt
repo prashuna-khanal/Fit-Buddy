@@ -3,6 +3,9 @@ package com.example.fit_buddy.view
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
+
+import androidx.compose.foundation.ExperimentalFoundationApi
+import kotlinx.coroutines.delay
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -12,13 +15,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,55 +45,58 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.fit_buddy.view.AchievementScreen
 import com.example.fit_buddy.R
+import com.example.fit_buddy.model.FeaturedWorkout
 import com.example.fit_buddy.repository.UserRepoImpl
-//import androidx.core.app.ComponentActivity
 import com.example.fit_buddy.ui.theme.*
 import com.example.fit_buddy.viewmodel.FeedViewModel
 import com.example.fit_buddy.viewmodel.FeedViewModelFactory
 import com.example.fit_buddy.viewmodel.UserViewModel
-import com.example.fitbuddy.repository.PoseRepo
-import com.example.fitbuddy.view.AIScreen
-import com.example.fitbuddy.viewmodel.PoseViewModel
 import com.example.fit_buddy.view.OtherUserProfileScreen
+import com.example.fitbuddy.repository.PoseRepo
+import com.example.fitbuddy.viewmodel.PoseViewModel
+
 class WorkoutActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            // dependencies
             val navController = rememberNavController()
-            val userRepo = UserRepoImpl()
-            val viewModel: UserViewModel = viewModel(factory = object : androidx.lifecycle.ViewModelProvider.Factory {
-                override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                    return UserViewModel(userRepo) as T
-                }
-            })
 
-            // WorkoutScreen directly
-                    WorkoutScreen(navController,viewModel)
+            val userViewModel: UserViewModel = viewModel(
+                factory = UserViewModelFactory(
+                    application = application,
+                    repository = UserRepoImpl()
+                )
+            )
 
-            }
+            WorkoutScreen(navController, userViewModel)
         }
     }
-
+}
 
 data class NavItem(val icon: Int, val label: String)
 
 @Composable
-
 fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
-
-    val userRepo = com.example.fit_buddy.repository.UserRepoImpl() // instance
+    val userProfile by userViewModel.user.observeAsState()
+    val firstName = userProfile?.fullName?.split(" ")?.firstOrNull() ?: "Buddy"
+    val userRepo = com.example.fit_buddy.repository.UserRepoImpl()
     var showRequestsScreen by remember { mutableStateOf(false) }
     var selectedProfileId by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
     val feedViewModel: FeedViewModel = viewModel(
-       factory = FeedViewModelFactory(com.example.fit_buddy.repository.PostRepository(context),userRepo)
+        factory = FeedViewModelFactory(com.example.fit_buddy.repository.PostRepository(context), userRepo)
     )
-
 
     var selectedIndex by remember { mutableStateOf(0) }
     var cameraPermissionGranted by remember { mutableStateOf(false) }
+    var showHistorySheet by remember { mutableStateOf(false) }
+
+    if (showHistorySheet) {
+        WorkoutHistorySheet(userViewModel) {
+            showHistorySheet = false
+        }
+    }
 
     // Camera permission launcher
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
@@ -178,12 +185,9 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
                 .padding(padding)
         ) {
             when (selectedIndex) {
-                0 -> WorkoutHomeScreen()
-
-
+                0 -> WorkoutHomeScreen(userViewModel=userViewModel, userName = firstName, onSeeAllClick = {showHistorySheet=true})
 
                 1 -> {
-                    //
                     if (selectedProfileId != null) {
                         OtherUserProfileScreen(
                             userId = selectedProfileId!!,
@@ -191,12 +195,17 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
                             onBack = { selectedProfileId = null }
                         )
                     } else if (showRequestsScreen) {
-
                         val requests by feedViewModel.friendRequests.observeAsState(emptyList())
                         FriendRequestsScreen(
                             requests = requests,
-                            onAccept = { id -> feedViewModel.respondToRequest(id, true) },
-                            onDelete = { id -> feedViewModel.respondToRequest(id, false) },
+                            onAccept = { id ->
+                                val requestObj = requests.find { it.userId == id }
+                                requestObj?.let { feedViewModel.respondToRequest(it, true) }
+                            },
+                            onDelete = { id ->
+                                val requestObj = requests.find { it.userId == id }
+                                requestObj?.let { feedViewModel.respondToRequest(it, false) }
+                            },
                             onProfileClick = { id -> selectedProfileId = id },
                             onBack = { showRequestsScreen = false }
                         )
@@ -211,33 +220,28 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
                 2 -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         if (cameraPermissionGranted && viewModel != null) {
-                            ExerciseActivityScreen()
-
+                            ExerciseActivityScreen(userViewModel)
                         } else {
                             Text("Camera permission required", color = Color.Gray)
                         }
                     }
                 }
                 3 -> AchievementScreen()
-                4 ->  ProfileSectionComposable()
-
+                4 -> ProfileScreen(feedViewModel)
             }
         }
     }
 }
 
 @Composable
-fun WorkoutHomeScreen() {
-
+fun WorkoutHomeScreen(userViewModel: UserViewModel, userName: String, onSeeAllClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
             .verticalScroll(rememberScrollState())
     ) {
-
-        HeaderSection()
-
+        HeaderSection(userName = userName)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -246,34 +250,40 @@ fun WorkoutHomeScreen() {
             Spacer(Modifier.height(17.dp))
             AICoachCard()
             Spacer(Modifier.height(17.dp))
-            WeeklyActivityCard()
+            WeeklyActivityCard(userViewModel, onSeeAllClick = onSeeAllClick)
             Spacer(Modifier.height(18.dp))
-            WorkoutListSection()
+            WorkoutListSection(onSeeAllClick = onSeeAllClick)
         }
     }
 }
 
 @Composable
-fun HeaderSection() {
+fun HeaderSection(userName: String) {
+    val greeting = getGreeting()
+    val subtitle = when(greeting){
+        "Good Morning ☀️" -> "Time to kickstart your day!"
+        "Good Afternoon 🌤️" -> "Keep the momentum going!"
+        "Good Evening 🌅" -> "Ready to crush your goal today?"
+        else -> "Finish the day strong!"
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
-            .height(240.dp)
+            .padding(bottom = 16.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 20.dp, start = 20.dp, end = 20.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
             Column {
-                Text("Good Evening", color = textMuted, fontSize = 18.sp, fontWeight = FontWeight.Medium)
-                Spacer(Modifier.height(10.dp))
-                Text("Sam", color = textPrimary, fontSize = 29.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(10.dp))
-                Text("Ready to crush your goals today?", color = textSecondary, fontSize = 16.sp)
+                Text(text = greeting, color = textMuted, fontSize = 18.sp, fontWeight = FontWeight.Medium)
+                Text(text = userName, color = textPrimary, fontSize = 29.sp, fontWeight = FontWeight.Bold)
+                Text(text = subtitle, color = textSecondary, fontSize = 16.sp)
             }
 
             Box(
@@ -291,7 +301,7 @@ fun HeaderSection() {
             }
         }
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(20.dp))
 
         Row(
             modifier = Modifier
@@ -308,6 +318,16 @@ fun HeaderSection() {
             StatCard("Goal", "85%", R.drawable.octicon_goal_16,
                 Brush.verticalGradient(listOf(mint50, mint100)))
         }
+    }
+}
+
+private fun getGreeting(): String {
+    val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+    return when (hour) {
+        in 0..11 -> "Good Morning ☀️"
+        in 12..16 -> "Good Afternoon 🌤️"
+        in 17..20 -> "Good Evening 🌅"
+        else -> "Good Night 🌙"
     }
 }
 
@@ -399,7 +419,7 @@ fun AICoachCard() {
 }
 
 @Composable
-fun WeeklyActivityCard() {
+fun WeeklyActivityCard(userViewModel: UserViewModel, onSeeAllClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -412,28 +432,45 @@ fun WeeklyActivityCard() {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text("Weekly Activity", color = textPrimary, fontWeight = FontWeight.Medium, fontSize = 19.sp)
-            Text("View All", color = lavender600)
+            Text("View All",
+                modifier = Modifier.clickable{ onSeeAllClick() },
+                color = lavender600,
+            )
         }
 
         Spacer(Modifier.height(20.dp))
-        WeeklyBars()
+        WeeklyBars(userViewModel)
     }
 }
 
 @Composable
-fun WeeklyBars() {
+fun WeeklyBars(userViewModel: UserViewModel) {
     val maxHeightDp = 160.dp
     val fillPercents = listOf(0.5f, 0.75f, 1.0f, 0.7f, 0.8f, 0.9f, 0.6f)
-    val days = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+    val days = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+    // Note: workoutMinutes is not in UserViewModel - you need to add it there or use WorkoutViewModel
+    // Temporary dummy map to make it compile - replace with real data source
+    val dailyStats by remember { mutableStateOf(mapOf<String, Int>()) }
 
     Row(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.Bottom
     ) {
-        days.forEachIndexed { index, day ->
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        days.forEach { dayLabel ->
+            val minutes = dailyStats[dayLabel] ?: 0
+            val barColor = when{
+                minutes >= 15 -> lavender400
+                minutes > 0 -> Color(0xFF81C784)
+                else -> buttonLightGray
+            }
+            val barHeight = when {
+                minutes >= 15 -> maxHeightDp
+                minutes > 0 -> (maxHeightDp.value * 0.5f).dp
+                else -> 20.dp
+            }
 
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
                     modifier = Modifier
                         .width(28.dp)
@@ -450,14 +487,19 @@ fun WeeklyBars() {
                     Box(
                         modifier = Modifier
                             .width(28.dp)
-                            .height((maxHeightDp.value * fillPercents[index]).dp)
+                            .height(barHeight)
                             .clip(RoundedCornerShape(20.dp))
-                            .background(Brush.verticalGradient(listOf(lavender400, lavender300)))
+                            .background(barColor)
                     )
                 }
 
                 Spacer(Modifier.height(8.dp))
-                Text(day, color = textMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    dayLabel,
+                    color = if (minutes >= 15) lavender500 else textMuted,
+                    fontSize = 12.sp,
+                    fontWeight = if (minutes >= 15) FontWeight.Bold else FontWeight.Normal
+                )
             }
         }
     }
@@ -497,9 +539,9 @@ fun WorkoutCard(
     level: String,
     duration: String,
     calories: String,
-    image: Int
-) {
+    image: Int,
 
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -507,9 +549,7 @@ fun WorkoutCard(
             .clip(RoundedCornerShape(26.dp))
             .background(Color.White)
     ) {
-
         Column {
-
             Image(
                 painter = painterResource(id = image),
                 contentDescription = title,
@@ -586,75 +626,101 @@ fun WorkoutCard(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun WorkoutListSection() {
+fun WorkoutListSection(onSeeAllClick: () -> Unit) {
     val context = LocalContext.current
+
+    val featuredWorkouts = listOf(
+        FeaturedWorkout("Full Body HIT", "Intermediate", "25 min", "320 cal", R.drawable.workout_1),
+        FeaturedWorkout("Core Strength", "Beginner", "18 min", "210 cal", R.drawable.workout_2),
+        FeaturedWorkout("Upper Body Blast", "Advanced", "30 min", "400 cal", R.drawable.workout3),
+        FeaturedWorkout("Leg Day Pro", "Intermediate", "22 min", "350 cal", R.drawable.workout_4),
+        FeaturedWorkout("Yoga Recovery", "Beginner", "15 min", "100 cal", R.drawable.workout_5)
+    )
+
+    val pagerState = rememberPagerState(
+        initialPage = 0,
+        pageCount = { featuredWorkouts.size }
+    )
+
+    LaunchedEffect(Unit) {
+        while(true) {
+            delay(3000)
+            if (!pagerState.isScrollInProgress) {
+                val nextPage = (pagerState.currentPage + 1) % featuredWorkouts.size
+                pagerState.animateScrollToPage(nextPage)
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
     ) {
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                "Recommended",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = textPrimary
-            )
-
+            Text("Recommended", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = textPrimary)
             Text(
                 "See All",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 color = lavender600,
-                modifier = Modifier.clickable {
-                    context.startActivity(Intent(context, ExerciseActivity::class.java))
-                }
+                modifier = Modifier.clickable { onSeeAllClick() }
             )
         }
 
         Spacer(Modifier.height(16.dp))
 
-        WorkoutCard(
-            title = "Full Body HIT",
-            level = "Intermediate",
-            duration = "25 min",
-            calories = "320 cal",
-            image = R.drawable.workout_1
-        )
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxWidth(),
+            pageSpacing = 16.dp,
+            contentPadding = PaddingValues(horizontal = 0.dp)
+        ) { page ->
+            val workout = featuredWorkouts[page]
+            WorkoutCard(
+                title = workout.title,
+                level = workout.level,
+                duration = workout.duration,
+                calories = workout.calories,
+                image = workout.image
+            )
+        }
 
-        Spacer(Modifier.height(16.dp))
-
-        WorkoutCard(
-            title = "Core Strength",
-            level = "Beginner",
-            duration = "18 min",
-            calories = "210 cal",
-            image = R.drawable.workout_2
-        )
+        Row(
+            Modifier.fillMaxWidth().padding(top = 12.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            repeat(featuredWorkouts.size) { iteration ->
+                val color = if (pagerState.currentPage == iteration) lavender500 else Color.LightGray.copy(alpha = 0.5f)
+                Box(
+                    modifier = Modifier
+                        .padding(3.dp)
+                        .clip(CircleShape)
+                        .background(color)
+                        .size(if (pagerState.currentPage == iteration) 10.dp else 7.dp)
+                )
+            }
+        }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable
 fun PreviewWorkoutScreen() {
     val navController = rememberNavController()
-    val userRepo = UserRepoImpl()
 
-//     ViewModel requirements
+    // Mock UserViewModel for preview (using correct factory)
     val mockViewModel: UserViewModel = viewModel(
-        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
-            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                return UserViewModel(userRepo) as T
-            }
-        }
+        factory = UserViewModelFactory(
+            application = LocalContext.current.applicationContext as android.app.Application,
+            repository = UserRepoImpl()
+        )
     )
 
     WorkoutScreen(
@@ -663,3 +729,89 @@ fun PreviewWorkoutScreen() {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun WorkoutHistorySheet(
+    userViewModel: UserViewModel,
+    onDismiss: () -> Unit
+) {
+    // Note: workoutMinutes is not in UserViewModel - temporary dummy data to compile
+    val dailyStats by remember { mutableStateOf(mapOf<String, Int>()) }
+    val sheetState = rememberModalBottomSheetState()
+    val daysOfWeek = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = Color.White,
+        dragHandle = { BottomSheetDefaults.DragHandle(color = lavender500) }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 40.dp)
+        ) {
+            val totalMinutes = dailyStats.values.sum()
+            if (totalMinutes == 0) {
+                Box(Modifier.fillMaxWidth().height(150.dp), contentAlignment = Alignment.Center) {
+                    Text("No activity recorded this week yet!", color = textMuted)
+                }
+            } else {
+                Text("Activity History", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = textPrimary)
+                Text("Total this week: $totalMinutes mins", color = lavender600, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    daysOfWeek.forEach { day ->
+                        val mins = dailyStats[day] ?: 0
+                        HistoryRow(day, mins)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun HistoryRow(day: String, minutes: Int) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(backgroundLightLavender)
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = day,
+            modifier = Modifier.width(45.dp),
+            fontWeight = FontWeight.Bold,
+            color = textPrimary
+        )
+
+        Box(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
+            Box(Modifier.fillMaxWidth().height(8.dp).clip(CircleShape).background(Color.LightGray.copy(0.3f)))
+
+            val progressWidth = (minutes / 30f).coerceIn(0.05f, 1f)
+            Box(
+                Modifier
+                    .fillMaxWidth(progressWidth)
+                    .height(8.dp)
+                    .clip(CircleShape)
+                    .background(if (minutes >= 15) lavender400 else Color(0xFF81C784))
+            )
+        }
+
+        Text(
+            text = "$minutes min",
+            fontWeight = FontWeight.Bold,
+            color = textSecondary,
+            fontSize = 14.sp
+        )
+    }
+}

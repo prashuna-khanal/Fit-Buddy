@@ -5,6 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.fit_buddy.model.WorkoutDay
 import com.example.fit_buddy.repository.WorkoutRepositoryImpl
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -81,6 +84,29 @@ class WorkoutViewModel : ViewModel() {
         if (minutes <= 0) return
         viewModelScope.launch {
             workoutRepo.addWorkoutMinutes(minutes)
+        }
+    }
+    // ====== TODAY'S WORKOUT MINUTES ======
+    private val _todayWorkoutMinutes = MutableStateFlow(0)
+    val todayWorkoutMinutes: StateFlow<Int> get() = _todayWorkoutMinutes
+
+    init {
+        // Whenever workoutHistory updates, recalc today's minutes
+        viewModelScope.launch {
+            workoutHistory.collect { history ->
+                val today = LocalDate.now().toString()
+                val totalToday = history.filter { it.date == today }.sumOf { it.minutes }
+                _todayWorkoutMinutes.value = totalToday
+            }
+        }
+    }
+
+    // Optional helper: manually refresh today's minutes
+    fun refreshTodayMinutes() {
+        viewModelScope.launch {
+            val history = workoutHistory.first() // get current list
+            val today = LocalDate.now().toString()
+            _todayWorkoutMinutes.value = history.filter { it.date == today }.sumOf { it.minutes }
         }
     }
 

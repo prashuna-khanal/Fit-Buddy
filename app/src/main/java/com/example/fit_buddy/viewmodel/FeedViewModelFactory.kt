@@ -9,7 +9,7 @@ class FeedViewModelFactory(private val repository: PostRepository,private val us
 {
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T { // 1. Added ': T' return type
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
         // check if the 'modelClass' is a FeedViewModel
         if (modelClass.isAssignableFrom(FeedViewModel::class.java)) {
             // return the actual FeedViewModel with the repository

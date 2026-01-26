@@ -1,13 +1,16 @@
 package com.example.fit_buddy.model
 
-class UserModel (
+data class UserModel (
     val userId: String = "",
     val fullName: String = "",
     val email: String = "",
     val dob: String = "",
-    val profilePicUrl: String = "",
+    val profileImage: String? = "",
     val gender: String = "",
-    val weight: String = ""
+    val weight: String = "",
+    val height: String = "",
+
+    val password: String = ""
 ){
 
     fun toMap(): Map<String, Any?> {
@@ -16,9 +19,10 @@ class UserModel (
             "fullName" to fullName,
             "email" to email,
             "dob" to dob,
-            "profilePicUrl" to profilePicUrl,
+            "profileImage" to profileImage,
             "gender" to gender,
-            "weight" to weight
+            "weight" to weight,
+            "height" to height
         )
     }
 }
