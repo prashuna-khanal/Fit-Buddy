@@ -1,4 +1,5 @@
 package com.example.fit_buddy.view
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,10 +21,11 @@ import com.example.fit_buddy.R
 import com.example.fit_buddy.ui.theme.*
 
 @Composable
-fun AppSettingsScreenComposable() {
-
+fun AppSettingsScreenComposable(
+    onBackClick: () -> Unit = {}
+) {
     var notificationsEnabled by remember { mutableStateOf(true) }
-//    var darkModeEnabled by remember { mutableStateOf(false) }
+    // var darkModeEnabled by remember { mutableStateOf(false) }
     var metricUnitsEnabled by remember { mutableStateOf(true) }
     var analyticsEnabled by remember { mutableStateOf(true) }
 
@@ -34,7 +36,6 @@ fun AppSettingsScreenComposable() {
             .verticalScroll(rememberScrollState())
             .padding(20.dp)
     ) {
-
         Spacer(modifier = Modifier.height(20.dp))
 
         // HEADER
@@ -48,7 +49,7 @@ fun AppSettingsScreenComposable() {
                 tint = lavender400,
                 modifier = Modifier
                     .size(28.dp)
-                    .clickable { }
+                    .clickable { onBackClick() }
             )
 
             Box(
@@ -77,13 +78,7 @@ fun AppSettingsScreenComposable() {
             onCheckedChange = { notificationsEnabled = it }
         )
 
-//        SettingsItemSwitch(
-//            icon = R.drawable.baseline_dark_mode_24,
-//            title = "Dark Mode",
-//            description = "Reduce eye strain by enabling dark theme.",
-//            checked = darkModeEnabled,
-//            onCheckedChange = { darkModeEnabled = it }
-//        )
+        // SettingsItemSwitch( ... dark mode ... )  ← still commented out
 
         SettingsItemSwitch(
             icon = R.drawable.baseline_straighten_24,

@@ -20,7 +20,9 @@ import com.example.fit_buddy.R
 import com.example.fit_buddy.ui.theme.*
 
 @Composable
-fun PrivacySecurityScreenComposable() {
+fun PrivacySecurityScreenComposable(
+    onBackClick: () -> Unit = {}
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -41,7 +43,7 @@ fun PrivacySecurityScreenComposable() {
                 tint = lavender400,
                 modifier = Modifier
                     .size(28.dp)
-                    .clickable { }
+                    .clickable { onBackClick() }
             )
 
             Box(
@@ -62,24 +64,48 @@ fun PrivacySecurityScreenComposable() {
         Spacer(modifier = Modifier.height(50.dp))
 
         // Privacy & Security Options
-        PrivacyItem(icon = R.drawable.baseline_lock_24, title = "Change Password", description = "Update your password regularly to keep your account secure.")
-//        PrivacyItem(icon = R.drawable.baseline_security_24, title = "Two-Factor Authentication", description = "Add an extra layer of security to your account using 2FA via email or authenticator apps.")
-        PrivacyItem(icon = R.drawable.baseline_visibility_24, title = "App Permissions", description = "Manage which data and device features Fit Buddy can access, like location, notifications, and health data.")
-        PrivacyItem(icon = R.drawable.baseline_privacy_tip_24, title = "Privacy Settings", description = "Control how your personal information and activity data are used and shared.")
-        PrivacyItem(icon = R.drawable.baseline_logout_24, title = "Logout from Devices", description = "Sign out from other devices where your account is currently active.")
+        PrivacyItem(
+            icon = R.drawable.baseline_lock_24,
+            title = "Change Password",
+            description = "Update your password regularly to keep your account secure."
+        )
+
+        // Two-Factor is still commented out in your original
+
+        PrivacyItem(
+            icon = R.drawable.baseline_visibility_24,
+            title = "App Permissions",
+            description = "Manage which data and device features Fit Buddy can access, like location, notifications, and health data."
+        )
+
+        PrivacyItem(
+            icon = R.drawable.baseline_privacy_tip_24,
+            title = "Privacy Settings",
+            description = "Control how your personal information and activity data are used and shared."
+        )
+
+        PrivacyItem(
+            icon = R.drawable.baseline_logout_24,
+            title = "Logout from Devices",
+            description = "Sign out from other devices where your account is currently active."
+        )
 
         Spacer(modifier = Modifier.height(10.dp))
     }
 }
 
 @Composable
-fun PrivacyItem(icon: Int, title: String, description: String) {
+fun PrivacyItem(
+    icon: Int,
+    title: String,
+    description: String
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
             .background(lavender100, RoundedCornerShape(16.dp))
-            .clickable { }
+            .clickable { /* TODO: add navigation or action */ }
             .padding(18.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -115,5 +141,3 @@ fun PrivacyItem(icon: Int, title: String, description: String) {
 fun PrivacySecurityComposablePreview() {
     PrivacySecurityScreenComposable()
 }
-
-
