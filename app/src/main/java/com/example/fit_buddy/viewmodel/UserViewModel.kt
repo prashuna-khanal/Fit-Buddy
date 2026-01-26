@@ -3,8 +3,10 @@ package com.example.fit_buddy.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.fit_buddy.model.UserModel
 import com.example.fit_buddy.repository.UserRepo
+import kotlinx.coroutines.launch
 
 
 class UserViewModel(private val repository: UserRepo) : ViewModel() {
@@ -15,6 +17,22 @@ class UserViewModel(private val repository: UserRepo) : ViewModel() {
 
     private val _error = MutableLiveData<String?>(null)
     val error: LiveData<String?> get() = _error
+
+    // ================= USER DATA FOR BMI =================
+
+    private val _user = MutableLiveData<UserModel?>()
+    val user: LiveData<UserModel?> get() = _user
+
+    fun loadCurrentUser() {
+        val userId = repository.getCurrentUserId() ?: return
+
+        viewModelScope.launch {
+            repository.getUserData(userId).collect { userData ->
+                _user.postValue(userData)
+            }
+        }
+    }
+
 
 
     fun register(email: String, pass: String, callback: (Boolean, String, String) -> Unit) {
