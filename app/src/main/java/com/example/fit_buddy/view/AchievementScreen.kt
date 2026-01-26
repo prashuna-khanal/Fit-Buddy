@@ -67,7 +67,7 @@ fun AchievementScreen() {
     val userViewModel: UserViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
             override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                return UserViewModel(userRepo, application) as T
+                return UserViewModel(application, userRepo) as T
             }
         }
     )

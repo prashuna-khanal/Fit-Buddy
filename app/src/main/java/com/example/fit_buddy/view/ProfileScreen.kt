@@ -16,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fit_buddy.R
 import com.example.fit_buddy.ui.theme.backgroundLightLavender
 import com.example.fit_buddy.viewmodel.FeedViewModel
@@ -166,9 +167,9 @@ fun LogoutItem(onClick: () -> Unit) {
         )
     }
 }
-
-@Preview
-@Composable
-fun ProfilePreview(){
-    ProfileScreen()
-}
+//
+//@Preview
+//@Composable
+//fun ProfilePreview(){
+//    ProfileScreen(v)
+//}

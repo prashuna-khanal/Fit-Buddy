@@ -82,6 +82,7 @@ fun RegistrationBody() {
 
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
+    var gender by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var selectedGender by remember { mutableStateOf("") }
@@ -308,9 +309,10 @@ fun RegistrationBody() {
                                 } else {
                                     Toast.makeText(context, dbMsg, Toast.LENGTH_SHORT).show()
                                 }
-                            } else {
-                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                             }
+                            //                            else {
+//                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+//                            }
                         }
                     }
                 },
