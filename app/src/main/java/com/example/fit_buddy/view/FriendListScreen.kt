@@ -37,40 +37,50 @@ import com.example.fit_buddy.viewmodel.FeedViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FriendListScreen(
-    viewModel: FeedViewModel,onBack: () -> Unit,onFriendClick:(String) -> Unit
-){
-//    accepted friends list
+    viewModel: FeedViewModel,
+    onBack: () -> Unit,
+    onFriendClick: (String) -> Unit
+) {
+    // accepted friends list
     val friends by viewModel.acceptedFriends.observeAsState(emptyList())
-    Scaffold (
+
+    Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("Friends", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(painterResource((R.drawable.outline_arrow_back_ios_24)), null)
+                        // Fixed: Removed unnecessary extra parentheses
+                        Icon(painterResource(R.drawable.outline_arrow_back_ios_24), contentDescription = "Back")
                     }
                 }
             )
         }
-    ){
-        padding ->
-        if(friends.isEmpty()){
-            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center){
-                Text("Oops No friends yet !", color = Color.Gray)
+    ) { padding ->
+        if (friends.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                Text("Oops No friends yet!", color = Color.Gray)
             }
-        }else{
-            LazyColumn (modifier = Modifier.fillMaxSize().padding(padding)){
-                items(friends) {friend ->
-                    Row (modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onFriendClick(friend.userId) }
-                        .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically){
+        } else {
+            LazyColumn(modifier = Modifier.fillMaxSize().padding(padding)) {
+                items(friends) { friend ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onFriendClick(friend.userId) }
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        //  AsyncImage model and placeholder logic
                         AsyncImage(
-                            model = friend.profilePicUrl,
-                            contentDescription = null,
-                            modifier = Modifier.size(50.dp).clip(CircleShape),
+                            model = if (friend.profilePicUrl.isNotEmpty()) friend.profilePicUrl else R.drawable.baseline_person_24,
+                            contentDescription = "Friend Profile Pic",
+                            modifier = Modifier
+                                .size(50.dp)
+                                .clip(CircleShape),
                             contentScale = ContentScale.Crop,
+                            // Use error and placeholder to handle image states
+                            error = painterResource(R.drawable.baseline_person_24),
                             placeholder = painterResource(R.drawable.baseline_person_24)
                         )
 
@@ -95,5 +105,4 @@ fun FriendListScreen(
             }
         }
     }
-
 }

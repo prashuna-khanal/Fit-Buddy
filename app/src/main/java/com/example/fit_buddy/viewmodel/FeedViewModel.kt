@@ -28,7 +28,7 @@ class FeedViewModel(
 
     val allUsers: LiveData<List<UserModel>> = repository.getAllUsers()
         .asLiveData(viewModelScope.coroutineContext + Dispatchers.IO)
-//automatically get user name
+    //automatically get user name
     val currentUserName: LiveData<String> = allUsers.map { users ->
         users?.find { it.userId == currentUserId }?.fullName ?: "User"
     }
@@ -41,7 +41,7 @@ class FeedViewModel(
     val acceptedFriends: LiveData<List<FriendRequest>> =
         repository.getAcceptedFriends(currentUserId)
             .asLiveData(viewModelScope.coroutineContext + Dispatchers.IO)
-//list of people who are friends
+    //list of people who are friends
     private val friendIds: LiveData<List<String>> = acceptedFriends.map { friends ->
         friends.map { it.userId }
     }
@@ -49,7 +49,7 @@ class FeedViewModel(
     // all post from friends
     val allPosts: LiveData<List<FeedPost>> = repository.getPosts()
         .asLiveData(viewModelScope.coroutineContext + Dispatchers.IO)
-//
+    //
     val friendsPosts: LiveData<List<FeedPost>> = MediatorLiveData<List<FeedPost>>().apply {
         fun updateFeed() {
             val posts = allPosts.value ?: emptyList()
@@ -70,27 +70,23 @@ class FeedViewModel(
 
     // sending friendrequest
     fun sendFriendRequest(targetUserId: String) {
-        val currentUserInfo = allUsers.value?.find { it.userId == currentUserId }
-        if (currentUserInfo != null) {
+        val currentUser = allUsers.value?.find { it.userId == currentUserId }
+        if (currentUser != null) {
             repository.sendFriendRequest(
                 myUserId = currentUserId,
-                myFullName = currentUserInfo.fullName,
-                myProfilePic = currentUserInfo.profilePicUrl,
+                myFullName = currentUser.fullName,
+                myProfilePic = currentUser.profileImage ?: "", // matches UserModel
                 targetUserId = targetUserId
-            ) { /* Optional: handle success toast */ }
+            ) { /* Toast handle */ }
         }
     }
 
     fun respondToRequest(request: FriendRequest, accept: Boolean) {
-        // fetch current user details
         val currentUser = allUsers.value?.find { it.userId == currentUserId }
-        val myName = currentUser?.fullName ?: "User"
-        val myPic = currentUser?.profilePicUrl ?: ""
-
         repository.handleFriendRequest(
             myUserId = currentUserId,
-            myUsername = myName,
-            myProfilePic = myPic,
+            myUsername = currentUser?.fullName ?: "User",
+            myProfilePic = currentUser?.profileImage ?: "",
             request = request,
             accept = accept
         ) { }
@@ -109,14 +105,14 @@ class FeedViewModel(
     fun deletePost(postId: String) {
         repository.deletePost(postId) {  }
     }
-//upload status checking
+    //upload status checking
     fun sharePost(uri: Uri, caption: String) {
         if (uri == Uri.EMPTY) return
 
-
         val currentUser = allUsers.value?.find { it.userId == currentUserId }
         val myName = currentUser?.fullName ?: "User"
-        val myPic = currentUser?.profilePicUrl ?: ""
+        //
+        val myPic = currentUser?.profileImage ?: ""
 
         isUploading = true
         repository.uploadPost(
@@ -151,7 +147,7 @@ class FeedViewModel(
     fun selectPost(postId: String?) {
         _selectedPostId.value = postId
     }
-//return to post for specific friends after visiting
+    //return to post for specific friends after visiting
     fun getPostsByUser(userId: String): LiveData<List<FeedPost>> {
         return repository.getPostsByUser(userId)
             .asLiveData(viewModelScope.coroutineContext + Dispatchers.IO)
