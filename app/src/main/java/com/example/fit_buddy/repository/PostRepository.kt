@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
 class PostRepository(private val context: Context) {
-//    database connections
+    //    database connections
     private val firebaseUrl = "https://fitbuddy-18168-default-rtdb.firebaseio.com"
     private val firebaseInstance = FirebaseDatabase.getInstance(firebaseUrl)
 
@@ -42,7 +42,7 @@ class PostRepository(private val context: Context) {
         }
     }
 
-//adding friend or requested
+    //adding friend or requested
     fun getFriendshipStatus(myUserId: String, targetUserId: String): Flow<String> =
         callbackFlow {
             val friendRef = friendsDatabase.child(myUserId).child(targetUserId)
@@ -76,7 +76,7 @@ class PostRepository(private val context: Context) {
                 requestDatabase.child(targetUserId).removeEventListener(listener)
             }
         }
-// count total friend
+    // count total friend
     fun getFriendCount(userId: String): Flow<Int> = callbackFlow {
         val userFriendsRef = friendsDatabase.child(userId)
 
@@ -167,7 +167,7 @@ class PostRepository(private val context: Context) {
     fun getCurrentUserId(): String {
         return com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: "unknown"
     }
-//liking post
+    //liking post
     fun toggleLike(postId: String, userId: String) {
         val likeRef = database.child(postId).child("likedBy").child(userId)
         likeRef.get().addOnSuccessListener { snapshot ->
@@ -179,7 +179,7 @@ class PostRepository(private val context: Context) {
     fun deletePost(postId: String, onComplete: (Boolean) -> Unit) {
         database.child(postId).removeValue().addOnCompleteListener { onComplete(it.isSuccessful) }
     }
-//uploading in cloudinary + firebase
+    //uploading in cloudinary + firebase
     fun uploadPost(imageUri: Uri, caption: String, username: String, profilePicUrl: String, onComplete: (Boolean) -> Unit) {
 //        initially upload in cloudinary
         MediaManager.get().upload(imageUri).unsigned("fit_buddy_preset")
@@ -207,7 +207,7 @@ class PostRepository(private val context: Context) {
                 override fun onReschedule(requestId: String?, error: ErrorInfo?) {}
             }).dispatch()
     }
-//handle accept or delete request
+    //handle accept or delete request
     fun handleFriendRequest(myUserId: String, myUsername: String, myProfilePic: String, request: FriendRequest, accept: Boolean, onComplete: (Boolean) -> Unit) {
         val senderId = request.userId
         val specificRequestRef = requestDatabase.child(myUserId).child(senderId)
