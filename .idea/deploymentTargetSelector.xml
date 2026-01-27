@@ -8,6 +8,12 @@
       <SelectionState runConfigName="SplashActivity (2)">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
+      <SelectionState runConfigName="AppSettingsScreenPreview">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="HelpSupportScreenComposablePreview">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
     </selectionStates>
   </component>
 </project>

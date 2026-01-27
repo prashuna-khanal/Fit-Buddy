@@ -90,17 +90,32 @@ fun HelpSupportScreenComposable(
             answer = "Go to Settings > Edit Profile > Password > Change Password. Enter your current password, then your new password twice. Passwords must have at least 8 characters, one uppercase letter, one number, and one special character."
         )
 
-        // ... (all other FAQ items remain the same)
-
         FAQItemExpandableAesthetic(
-            question = "How do I contact support?",
-            answer = "For further assistance, tap 'Help & Support' > 'Contact Us'. Submit questions, feedback, or report issues. Our support team usually responds within 24 hours."
+            question = "How do I update my profile information?",
+            answer = "Tap 'Edit Profile' in your Profile screen. You can update your name, profile picture, date of birth, and other personal information."
         )
 
         FAQItemExpandableAesthetic(
-            question = "Can I track sleep?",
-            answer = "Fit Buddy allows you to track sleep manually or via compatible smart devices. Go to 'Sleep Tracker' and input sleep/wake times or connect your device for automatic tracking."
+            question = "How can I set personalized fitness goals?",
+            answer = "Go to the 'Goals' tab and select your target, weekly workouts. Fit Buddy will create reminders and track progress automatically."
         )
+        FAQItemExpandableAesthetic(
+            question = "Does Fit Buddy offer guided workouts?",
+            answer = "Absolutely! We provide video and audio-guided workouts for strength, cardio and HIIT. You can filter by duration."
+        )
+        FAQItemExpandableAesthetic(
+            question = "Can I share my workouts with friends?",
+            answer = "Yes! After finishing a workout, tap 'Share' to send your results via Fit Buddy friend network."
+        )
+        FAQItemExpandableAesthetic(
+            question = "How can I monitor my progress over time?",
+            answer = "Check the 'Progress' tab for weekly, monthly, and yearly stats. Fit Buddy charts weight, strength, cardio, and consistency trends."
+        )
+        FAQItemExpandableAesthetic(
+            question = "Is there a community forum inside Fit Buddy?",
+            answer = "Yes! Join the Community tab to share workouts, and connect with other fitness enthusiasts."
+        )
+
 
         Spacer(modifier = Modifier.height(40.dp))
     }
