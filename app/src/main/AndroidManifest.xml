@@ -38,7 +38,7 @@
         <activity
             android:name=".view.SplashActivity"
             android:exported="true"
-            android:label="@string/title_activity_splash1"
+            android:label="@string/app_name"
             android:theme="@style/Theme.Fit_Buddy">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -84,11 +84,6 @@
             <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
             <!-- </intent-filter> -->
         </activity>
-        <activity
-            android:name=".view.RegistrationActivity"
-            android:exported="true"
-            android:label="@string/title_activity_registration"
-            android:theme="@style/Theme.Fit_Buddy" />
         <activity
             android:name=".view.ExerciseActivity"
             android:exported="false"
