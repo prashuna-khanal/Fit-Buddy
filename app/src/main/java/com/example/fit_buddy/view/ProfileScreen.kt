@@ -41,9 +41,9 @@ fun ProfileScreen(viewModel: FeedViewModel,userViewModel: UserViewModel) {
             1 -> EditProfileScreenComposable (
                 onBackClick = { selectedIndex = 0 }   )
 //            2 -> FriendListScreen()
-            3 -> PrivacySecurityScreenComposable (onBackClick = { selectedIndex = 0 })
-            4 -> AppSettingsScreenComposable (onBackClick = { selectedIndex = 0 })
-            5 -> HelpSupportScreenComposable(onBackClick = { selectedIndex = 0 })
+//            3 -> PrivacySecurityScreenComposable (onBackClick = { selectedIndex = 0 })
+            3 -> AppSettingsScreenComposable (onBackClick = { selectedIndex = 0 })
+            4 -> HelpSupportScreenComposable(onBackClick = { selectedIndex = 0 })
         }
     }
 }
@@ -94,9 +94,9 @@ fun ProfileMainScreen(
 
         ProfileItem(R.drawable.baseline_person_24, "Edit Profile") { onNavigate(1) }
         ProfileItem(R.drawable.baseline_people_24, "Friends") { onNavigate(2) }
-        ProfileItem(R.drawable.baseline_security_24, "Privacy & Security") { onNavigate(3) }
-        ProfileItem(R.drawable.baseline_settings_24, "App Settings") { onNavigate(4) }
-        ProfileItem(R.drawable.baseline_help_24, "Help & Support") { onNavigate(5) }
+//        ProfileItem(R.drawable.baseline_security_24, "Privacy & Security") { onNavigate(3) }
+        ProfileItem(R.drawable.baseline_settings_24, "App Settings") { onNavigate(3) }
+        ProfileItem(R.drawable.baseline_help_24, "Help & Support") { onNavigate(4) }
 
         Spacer(Modifier.height(20.dp))
 
