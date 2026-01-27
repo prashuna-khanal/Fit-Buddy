@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fit_buddy.model.AppNotification
 import com.example.fit_buddy.ui.theme.lavender100
-import com.example.fit_buddy.viewmodel.NotificationViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.material3.Icon
@@ -25,6 +24,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.ui.res.painterResource
+import com.example.fit_buddy.viewmodel.NotificationViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,8 +33,10 @@ fun NotificationScreen(
     viewModel: NotificationViewModel,
     onBack: () -> Unit
 ) {
+    // Load notifications for current user when this screen is shown
     val notifications by viewModel.notifications.collectAsState()
 
+    // Scaffold with TopAppBar
     Scaffold(
         topBar = {
             TopAppBar(
@@ -42,7 +44,7 @@ fun NotificationScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            painter = androidx.compose.ui.res.painterResource(id = com.example.fit_buddy.R.drawable.outline_arrow_back_ios_24),
+                            painter = painterResource(id = com.example.fit_buddy.R.drawable.outline_arrow_back_ios_24),
                             contentDescription = "Back"
                         )
                     }
@@ -78,6 +80,7 @@ fun NotificationScreen(
                             .fillMaxWidth()
                             .padding(8.dp)
                             .clickable {
+                                // Mark notification as read in Firebase
                                 viewModel.markAsRead(notif.id)
                                 // TODO: navigate to profile if friend request
                             },
@@ -110,7 +113,7 @@ fun NotificationScreen(
     }
 }
 
-// Utility to format timestamps
+// Format timestamp into "just now / min ago / hr ago / date"
 private fun relativeTime(timestamp: Long): String {
     val diff = System.currentTimeMillis() - timestamp
     return when {
