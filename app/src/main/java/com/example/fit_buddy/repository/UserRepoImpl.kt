@@ -30,7 +30,11 @@ class UserRepoImpl : UserRepo {
             }
     }
 
-    override fun register(email: String, password: String, callback: (Boolean, String, String) -> Unit) {
+    override fun register(
+        email: String,
+        password: String,
+        callback: (Boolean, String, String) -> Unit
+    ) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -54,7 +58,11 @@ class UserRepoImpl : UserRepo {
     }
 
 
-    override fun addUserToDatabase(userId: String, userModel: UserModel, callback: (Boolean, String) -> Unit) {
+    override fun addUserToDatabase(
+        userId: String,
+        userModel: UserModel,
+        callback: (Boolean, String) -> Unit
+    ) {
 
         val userRef = db.getReference("users").child(userId)
 
@@ -89,6 +97,7 @@ class UserRepoImpl : UserRepo {
                 val users = snapshot.children.mapNotNull { it.getValue(UserModel::class.java) }
                 trySend(users)
             }
+
             override fun onCancelled(error: DatabaseError) {
                 close(error.toException())
             }
@@ -130,7 +139,8 @@ class UserRepoImpl : UserRepo {
     }
 
     override fun logout() {
-        auth.signOut()    }
+        auth.signOut()
+    }
 
     override fun updateProfileImageLink(
         userId: String,
@@ -162,6 +172,7 @@ class UserRepoImpl : UserRepo {
                 }
             }
     }
+
     private val storageRef = FirebaseStorage.getInstance().reference
 
     override fun uploadProfileImage(
@@ -189,6 +200,18 @@ class UserRepoImpl : UserRepo {
             }
     }
 
+
+    override fun sendPasswordResetEmail(email: String, callback: (Boolean, String) -> Unit) {
+        val auth = FirebaseAuth.getInstance()
+        auth.sendPasswordResetEmail(email)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    callback(true, "Reset link sent to $email")
+                } else {
+                    callback(false, task.exception?.message ?: "Failed to send reset link")
+                }
+            }
+}
 
 
 

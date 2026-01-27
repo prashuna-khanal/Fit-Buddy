@@ -50,7 +50,6 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
                 ),
             contentAlignment = Alignment.Center
         ) {
-            //            back button
             IconButton(onClick = {isBackPressed= true
                 navController.popBackStack()
             },
@@ -118,7 +117,6 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
                 )
             )
 
-            //forget password and rememeber me
             Row(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -132,7 +130,9 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
                     text = "Forgot Password?",
                     fontSize = 12.sp,
                     color = Color(0xFF6200EE),
-                    modifier = Modifier.clickable { /* Reset Logic */ }
+                    modifier = Modifier.clickable {
+                        navController.navigate("forgot")
+                    }
                 )
             }
 

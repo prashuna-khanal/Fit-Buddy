@@ -1,15 +1,12 @@
 package com.example.fit_buddy.repository
 
 import com.example.fit_buddy.model.AppNotification
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
-class NotificationRepoImpl  : NotificationRepo {
+class NotificationRepoImpl : NotificationRepo {
     private val db = FirebaseDatabase.getInstance().reference
 
     override fun sendNotification(notification: AppNotification) {
@@ -19,13 +16,13 @@ class NotificationRepoImpl  : NotificationRepo {
         db.child("notifications")
             .child(notification.userId)
             .child(id)
-            .setValue(notif)    }
+            .setValue(notif)
+    }
 
     override fun getNotifications(userId: String): Flow<List<AppNotification>> = callbackFlow {
         val ref = db.child("notifications").child(userId)
 
         val listener = object : ValueEventListener {
-
             override fun onDataChange(snapshot: DataSnapshot) {
                 val list = snapshot.children.mapNotNull {
                     it.getValue(AppNotification::class.java)
@@ -45,6 +42,7 @@ class NotificationRepoImpl  : NotificationRepo {
         db.child("notifications")
             .child(userId)
             .child(notificationId)
-            .child("read")
-            .setValue(true)    }
+            .child("isRead")
+            .setValue(true)
+    }
 }
