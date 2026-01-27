@@ -227,7 +227,7 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
                     }
                 }
                 3 -> AchievementScreen()
-                4 -> ProfileScreen(feedViewModel)
+                4 -> ProfileScreen(feedViewModel,userViewModel)
             }
         }
     }
@@ -408,8 +408,14 @@ fun AICoachCard() {
         )
 
         Spacer(Modifier.height(20.dp))
+        val context = LocalContext.current
         Button(
-            onClick = {},
+            onClick = {
+                // Start ExerciseActivity
+
+                val intent = Intent(context, ExerciseActivity::class.java)
+                context.startActivity(intent)
+            },
             colors = ButtonDefaults.buttonColors(containerColor = textPrimary),
             shape = RoundedCornerShape(12.dp)
         ) {
