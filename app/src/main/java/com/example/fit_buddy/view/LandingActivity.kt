@@ -41,7 +41,6 @@ class LandingActivity : ComponentActivity() {
                     repository = UserRepoImpl()
                 )
             )
-            val notificationViewModel: NotificationViewModel = viewModel()
 
 
             NavHost(
@@ -63,14 +62,10 @@ class LandingActivity : ComponentActivity() {
                     ForgetPasswordScreen( navController = navController,
                         viewModel = userViewModel)
                 }
-                composable("notifications") {
-                    NotificationScreen(
-                        viewModel = notificationViewModel,
-                        onBack = { navController.popBackStack() }
-                    )
+
                 }
 
-            }
+
         }
     }
 }
