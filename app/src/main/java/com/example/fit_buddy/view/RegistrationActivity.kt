@@ -166,12 +166,16 @@ fun RegistrationBody() {
                         onDismissRequest = { expanded = false },
                         modifier = Modifier.fillMaxWidth(0.8f)
                     ) {
-                        options.forEach { option ->
+                        options.forEach {
                             DropdownMenuItem(
-                                text = { Text(option) },
+                                text = { Text(it) },
                                 onClick = {
-                                    selectedGender = option
+
+                                    selectedGender = it
+                                    gender = it
                                     expanded = false
+
+
                                 }
                             )
                         }

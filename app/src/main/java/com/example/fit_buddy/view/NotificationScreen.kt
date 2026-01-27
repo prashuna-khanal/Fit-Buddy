@@ -11,45 +11,49 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fit_buddy.model.AppNotification
 import com.example.fit_buddy.ui.theme.lavender100
-
+import com.example.fit_buddy.viewmodel.NotificationViewModel
 
 
 @Composable
 fun NotificationScreen(
-    notification: AppNotification?,
-    onDismiss: () -> Unit
+    viewModel: NotificationViewModel
 ) {
-    AnimatedVisibility(
-        visible = notification != null,
-        enter = slideInVertically(),
-        exit = slideOutVertically()
-    ) {
-        notification?.let {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp)
-                    .clickable { onDismiss() },
-                colors = CardDefaults.cardColors(containerColor = lavender100)
-            ) {
-                Column(Modifier.padding(16.dp)) {
-                    Text(it.title, fontWeight = FontWeight.Bold)
-                    Text(it.message, fontSize = 14.sp)
+    val notifications by viewModel.notifications.collectAsState()
+
+
+    if (notifications.isEmpty()) {
+        Text("No notifications yet", modifier = Modifier.padding(20.dp))
+    } else {
+        Column {
+            notifications.forEach { notif ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp)
+                        .clickable {
+                            viewModel.markAsRead(notif.id)
+                        }
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text(notif.title, fontWeight = FontWeight.Bold)
+                        Text(notif.message)
+
+                        if (!notif.isRead) {
+                            Text("NEW", color = Color.Red, fontSize = 12.sp)
+                        }
+                    }
                 }
             }
         }
     }
 }
-//@Preview
-//@Composable
-//fun NotificationScreenPreview() {
-//    NotificationScreen()
-//}
-
