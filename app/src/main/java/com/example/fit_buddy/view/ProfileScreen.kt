@@ -6,6 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -17,12 +18,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.example.fit_buddy.R
+import com.example.fit_buddy.model.UserModel
 import com.example.fit_buddy.ui.theme.backgroundLightLavender
 import com.example.fit_buddy.viewmodel.FeedViewModel
+import com.example.fit_buddy.viewmodel.UserViewModel
 
 @Composable
-fun ProfileScreen(viewModel: FeedViewModel) {
+fun ProfileScreen(viewModel: FeedViewModel,userViewModel: UserViewModel) {
 
     var selectedIndex by remember { mutableStateOf(0) }
 
@@ -32,7 +36,8 @@ fun ProfileScreen(viewModel: FeedViewModel) {
             .background(backgroundLightLavender)
     ) {
         when (selectedIndex) {
-            0 -> ProfileMainScreen { selectedIndex = it }
+            0 -> ProfileMainScreen (userViewModel = userViewModel,
+                onNavigate = { selectedIndex = it })
             1 -> EditProfileScreenComposable (
                 onBackClick = { selectedIndex = 0 }   )
 //            2 -> FriendListScreen()
@@ -45,8 +50,11 @@ fun ProfileScreen(viewModel: FeedViewModel) {
 
 @Composable
 fun ProfileMainScreen(
+    userViewModel: UserViewModel,
     onNavigate: (Int) -> Unit
 ) {
+    val user by userViewModel.user.observeAsState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -73,22 +81,14 @@ fun ProfileMainScreen(
                 .padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(R.drawable.img),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(14.dp))
-            )
+
+            ProfileUserImage(user)
 
             Spacer(Modifier.width(20.dp))
 
-            Column {
-                Text("Sam", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Text("sam@email.com", fontSize = 14.sp, color = Color.Gray)
-                Text("Member since January 2024", fontSize = 12.sp, color = Color.Gray)
-            }
+            ProfileUserColumn(user)
         }
+
 
         Spacer(Modifier.height(30.dp))
 
@@ -140,6 +140,43 @@ fun ProfileItem(
     }
 }
 
+
+@Composable
+fun ProfileUserColumn(user: com.example.fit_buddy.model.UserModel?) {
+    Column {
+        Text(
+            text = user?.fullName ?: "",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = user?.email ?: "",
+            fontSize = 14.sp,
+            color = Color.Gray
+        )
+        if (!user?.dob.isNullOrEmpty()) {
+            Text(
+                text = "DOB: ${user?.dob}",
+                fontSize = 12.sp,
+                color = Color.Gray
+            )
+        }
+    }
+}
+@Composable
+fun ProfileUserImage(user: UserModel?) {
+    AsyncImage(
+        model = user?.profileImage?.takeIf { it.isNotEmpty() }
+            ?: R.drawable.img,
+        contentDescription = "Profile Image",
+        modifier = Modifier
+            .size(80.dp)
+            .clip(RoundedCornerShape(14.dp)),
+        placeholder = painterResource(R.drawable.img),
+        error = painterResource(R.drawable.img)
+    )
+}
+
 @Composable
 fun LogoutItem(onClick: () -> Unit) {
     Row(
@@ -167,9 +204,3 @@ fun LogoutItem(onClick: () -> Unit) {
         )
     }
 }
-//
-//@Preview
-//@Composable
-//fun ProfilePreview(){
-//    ProfileScreen(v)
-//}
