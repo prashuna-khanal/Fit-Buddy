@@ -67,7 +67,7 @@ fun SplashContent1() {
             verticalArrangement = Arrangement.Center
         ) {
 
-            // Lottie animation (real app)
+
             if (LocalInspectionMode.current) {
                 Box(
                     modifier = Modifier
