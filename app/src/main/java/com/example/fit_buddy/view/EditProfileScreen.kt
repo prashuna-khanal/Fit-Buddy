@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,6 +33,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
+import com.cloudinary.android.MediaManager
+import com.cloudinary.android.callback.ErrorInfo
+import com.cloudinary.android.callback.UploadCallback
 import com.example.fit_buddy.R
 import com.example.fit_buddy.model.UserModel
 import com.example.fit_buddy.ui.theme.lavender400
@@ -43,42 +47,61 @@ fun EditProfileScreenComposable(
     onBackClick: () -> Unit = { }   // ← New: parent passes navigation action
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val user by viewModel.user.observeAsState()
 
     val userId = viewModel.getCurrentUserId()
 
-    var name by remember { mutableStateOf("SAM") }
-    var email by remember { mutableStateOf("sam@gmail.com") }
-    var weight by remember { mutableStateOf("50kg") }
-    var password by remember { mutableStateOf("password123") }
+    var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var weight by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("*********") }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    val user by viewModel
-        .getUserData(userId ?: "")
-        .collectAsState(initial = null)
+//    val user by viewModel
+//        .getUserData(userId ?: "")
+//        .collectAsState(initial = null)
 
-    LaunchedEffect(userId) {
-        if (userId != null) {
-            viewModel.getUserData(userId).collect { user ->
-                user?.let {
-                    name = it.fullName
-                    email = it.email
-                    weight = it.weight
-                }
-            }
+    LaunchedEffect(user) {
+        user?.let {
+            name = it.fullName
+            email = it.email
+            weight = it.weight
         }
     }
-    val context = LocalContext.current
+//    val context = LocalContext.current
 
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
-        uri?.let {
-            selectedImageUri = it
-            viewModel.uploadProfileImage(it) { success, msg ->
-                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-            }
+        uri?.let { localUri ->
+            selectedImageUri = localUri
+
+            // upload to Cloudinary
+            MediaManager.get().upload(localUri)
+                .callback(object : UploadCallback {
+                    override fun onSuccess(requestId: String?, resultData: Map<*, *>?) {
+                        val cloudinaryUrl = resultData?.get("secure_url").toString()
+
+                        // save that link to Firebase
+                        viewModel.updateProfileWithUrl(cloudinaryUrl) { success, msg ->
+                            if (success) {
+                                selectedImageUri = null
+                                Toast.makeText(context, "Photo Synced!", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+
+                    override fun onError(requestId: String?, error: ErrorInfo?) {
+                        Toast.makeText(context, "Cloudinary Error: ${error?.description}", Toast.LENGTH_LONG).show()
+                    }
+
+                    override fun onReschedule(requestId: String?, error: ErrorInfo?) {}
+                    override fun onProgress(requestId: String?, bytes: Long, totalBytes: Long) {}
+                    override fun onStart(requestId: String?) {}
+                }).dispatch()
         }
     }
 
@@ -102,7 +125,6 @@ fun EditProfileScreenComposable(
                     .padding(top = 48.dp, start = 16.dp, end = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Back icon – now navigates back when clicked
                 Icon(
                     painter = painterResource(R.drawable.baseline_arrow_back_ios_24),
                     contentDescription = "Back",
@@ -128,7 +150,6 @@ fun EditProfileScreenComposable(
             }
         }
 
-        // PROFILE IMAGE (overlapping header)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -249,15 +270,14 @@ fun EditProfileScreenComposable(
             onClick = {
                 if (userId == null) return@Button
 
-                val updatedUser = UserModel(
-                    userId = userId,
+                val updatedUser = user?.copy(
                     fullName = name,
                     email = email,
                     weight = weight
-                )
+                ) ?: UserModel(userId, name, email, weight)
 
                 viewModel.updateUserProfile(userId, updatedUser) { success, msg ->
-                    // Toast / Snackbar if needed
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                 }
             },
             modifier = Modifier

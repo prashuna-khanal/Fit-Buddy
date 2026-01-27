@@ -58,12 +58,12 @@ fun formatChange(value: Double, unit: String): String {
 
 /* ================== MAIN SCREEN ================== */
 @Composable
-fun AchievementScreen() {
-    val context = LocalContext.current
+fun AchievementScreen( ){
+val context = LocalContext.current
     val application = context.applicationContext as Application
     val userRepo = remember { UserRepoImpl() }
 
-    // ✅ Correct Factory for AndroidViewModel
+    //  Correct Factory for AndroidViewModel
     val userViewModel: UserViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
             override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {

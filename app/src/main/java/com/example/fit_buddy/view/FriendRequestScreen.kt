@@ -42,6 +42,7 @@ import com.example.fit_buddy.model.FriendRequest
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FriendRequestsScreen(requests: List<com.example.fit_buddy.model.FriendRequest>,
+                         allUsers: List<com.example.fit_buddy.model.UserModel>,
                          onAccept:(String) -> Unit,
 
                          onDelete:(String) -> Unit,
@@ -71,15 +72,18 @@ fun FriendRequestsScreen(requests: List<com.example.fit_buddy.model.FriendReques
             }
         }else{
             LazyColumn(modifier = Modifier.padding(padding).fillMaxSize()) {
-                items(requests){
+                items(requests, key = {it.userId}){
                     request ->
+                    val liveUser = allUsers.find { it.userId == request.userId }
+                    val displayPic = liveUser?.profileImage ?: request.profilePicUrl
+                    val displayName = liveUser?.fullName ?: request.username
                     Row (
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
 //                        viewing profile of sent request
                         AsyncImage(
-                            model = request.profilePicUrl,
+                            model = displayPic.ifEmpty { R.drawable.baseline_person_24 },
                             contentDescription = null,
                             modifier = Modifier
                                 .size(50.dp)
@@ -89,7 +93,7 @@ fun FriendRequestsScreen(requests: List<com.example.fit_buddy.model.FriendReques
                         )
                         Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
                             Text(
-                                text = request.username.ifEmpty { "Unkown User" },
+                                text = displayName.ifEmpty { "Unkown User" },
 //                                modifier = Modifier.weight(1f).padding(start = 12.dp),
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 16.sp,

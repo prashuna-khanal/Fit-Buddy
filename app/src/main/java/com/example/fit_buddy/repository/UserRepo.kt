@@ -46,5 +46,6 @@ interface UserRepo {
     )
 
     fun logout()
+    fun updateProfileImageLink(userId: String, cloudinaryUrl: String, callback: (Boolean, String) -> Unit)
 
 }

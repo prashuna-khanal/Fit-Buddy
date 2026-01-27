@@ -132,6 +132,20 @@ class UserRepoImpl : UserRepo {
     override fun logout() {
         auth.signOut()    }
 
+    override fun updateProfileImageLink(
+        userId: String,
+        imageUrl: String,
+        callback: (Boolean, String) -> Unit
+    ) {
+        usersRef.child(userId).child("profileImage").setValue(imageUrl)
+            .addOnSuccessListener {
+                callback(true, "Profile photo updated!")
+            }
+            .addOnFailureListener {
+                callback(false, it.message ?: "Failed to save link")
+            }
+    }
+
 
     override fun updateUserProfile(
         userId: String,
@@ -172,7 +186,8 @@ class UserRepoImpl : UserRepo {
             }
             .addOnFailureListener {
                 callback(false, it.message ?: "Upload failed")
-            }    }
+            }
+    }
 
 
 

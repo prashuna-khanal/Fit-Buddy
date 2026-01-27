@@ -15,6 +15,8 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 class WorkoutViewModel : ViewModel() {
+    private val _dailyGoalMinutes = MutableStateFlow(30)
+    val dailyGoalMinutes: StateFlow<Int> get() = _dailyGoalMinutes
 
     // Create the repository directly inside the ViewModel — no injection needed
     private val workoutRepo = WorkoutRepositoryImpl()
@@ -49,6 +51,12 @@ class WorkoutViewModel : ViewModel() {
             date = date.minusDays(1)
             if (currentStreak > 0 && tempStreak == 0) break // optimization: stop after current streak ends
         }
+
+//        function to update goal
+fun setDailyGoal(minutes: Int){
+    _dailyGoalMinutes.value=minutes
+}
+
 
         // Last 7 days: oldest → newest (e.g., Wed → Tue if today is Tue)
         val last7Days = mutableListOf<Pair<String, Boolean>>()
