@@ -16,6 +16,7 @@ import com.example.fit_buddy.viewmodel.UserViewModel
 import com.example.fit_buddy.viewmodel.UserViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
 import androidx.navigation.NavController
+import com.example.fit_buddy.viewmodel.NotificationViewModel
 
 class LandingActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,6 +41,8 @@ class LandingActivity : ComponentActivity() {
                     repository = UserRepoImpl()
                 )
             )
+            val notificationViewModel: NotificationViewModel = viewModel()
+
 
             NavHost(
                 navController = navController,
@@ -59,6 +62,12 @@ class LandingActivity : ComponentActivity() {
                 composable("forgot") {
                     ForgetPasswordScreen( navController = navController,
                         viewModel = userViewModel)
+                }
+                composable("notifications") {
+                    NotificationScreen(
+                        viewModel = notificationViewModel,
+                        onBack = { navController.popBackStack() }
+                    )
                 }
 
             }
