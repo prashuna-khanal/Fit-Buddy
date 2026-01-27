@@ -57,7 +57,8 @@ class LandingActivity : ComponentActivity() {
                     SignUpScreen(navController, userViewModel)
                 }
                 composable("forgot") {
-                    ForgetPasswordScreen(navController)
+                    ForgetPasswordScreen( navController = navController,
+                        viewModel = userViewModel)
                 }
 
             }
