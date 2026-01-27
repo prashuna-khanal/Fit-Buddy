@@ -52,6 +52,7 @@ import com.example.fit_buddy.viewmodel.FeedViewModel
 import com.example.fit_buddy.viewmodel.FeedViewModelFactory
 import com.example.fit_buddy.viewmodel.UserViewModel
 import com.example.fit_buddy.view.OtherUserProfileScreen
+import com.example.fit_buddy.viewmodel.UserViewModelFactory
 import com.example.fitbuddy.repository.PoseRepo
 import com.example.fitbuddy.viewmodel.PoseViewModel
 
