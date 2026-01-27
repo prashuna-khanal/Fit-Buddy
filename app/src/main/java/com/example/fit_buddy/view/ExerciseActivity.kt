@@ -29,6 +29,7 @@ import com.example.fit_buddy.model.ExerciseModel
 import com.example.fit_buddy.repository.UserRepoImpl
 import com.example.fit_buddy.ui.theme.*
 import com.example.fit_buddy.viewmodel.UserViewModel
+import com.example.fit_buddy.viewmodel.UserViewModelFactory
 import com.example.fit_buddy.viewmodel.WorkoutViewModel
 import com.example.fitbuddy.repository.PoseRepo
 import com.example.fitbuddy.view.AIScreen

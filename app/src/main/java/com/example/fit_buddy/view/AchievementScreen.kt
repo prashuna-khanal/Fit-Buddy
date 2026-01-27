@@ -251,11 +251,22 @@ fun BodyMetricsGrid(user: UserModel?, userViewModel: UserViewModel) {
     val bodyFat = estimateBodyFat(bmi, gender)
 
 
-
+    val bmiStatus = when {
+        bmi < 18.5 -> "Underweight"
+        bmi in 18.5..24.9 -> "Healthy"
+        bmi in 25.0..29.9 -> "Overweight"
+        else -> "Obese"
+    }
     Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             MetricCard("Weight", String.format("%.1f", weight), "kg", "Target: 65kg", Modifier.weight(1f)) { showWeightDialog = true }
-            MetricCard("BMI", String.format("%.1f", bmi), "", if(bmi < 25) "Healthy" else "Overweight", Modifier.weight(1f))
+            MetricCard(
+                "BMI",
+                String.format("%.1f", bmi),
+                "",
+                bmiStatus,
+                Modifier.weight(1f)
+            )
         }
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
