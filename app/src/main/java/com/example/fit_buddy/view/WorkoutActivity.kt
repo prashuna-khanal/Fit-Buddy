@@ -2,6 +2,7 @@ package com.example.fit_buddy.view
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Application
 import android.content.Intent
 
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -35,7 +36,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -46,15 +49,24 @@ import androidx.navigation.compose.rememberNavController
 import com.example.fit_buddy.view.AchievementScreen
 import com.example.fit_buddy.R
 import com.example.fit_buddy.model.FeaturedWorkout
+import com.example.fit_buddy.model.WorkoutDay
+import com.example.fit_buddy.repository.NotificationRepoImpl
 import com.example.fit_buddy.repository.UserRepoImpl
 import com.example.fit_buddy.ui.theme.*
 import com.example.fit_buddy.viewmodel.FeedViewModel
 import com.example.fit_buddy.viewmodel.FeedViewModelFactory
 import com.example.fit_buddy.viewmodel.UserViewModel
 import com.example.fit_buddy.view.OtherUserProfileScreen
+import com.example.fit_buddy.viewmodel.WorkoutViewModel
+import com.example.fit_buddy.viewmodel.NotificationViewModel
 import com.example.fit_buddy.viewmodel.UserViewModelFactory
 import com.example.fitbuddy.repository.PoseRepo
 import com.example.fitbuddy.viewmodel.PoseViewModel
+import java.time.LocalDate
+import java.time.format.TextStyle
+import java.util.Locale
+
+data class NavItem(val icon: Int, val label: String)
 
 class WorkoutActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,45 +87,70 @@ class WorkoutActivity : ComponentActivity() {
     }
 }
 
-data class NavItem(val icon: Int, val label: String)
-
 @Composable
 fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
+    val workoutViewModel: WorkoutViewModel = viewModel()
+    val history by workoutViewModel.workoutHistory.collectAsState(initial = emptyList())
+    val todayMins by workoutViewModel.todayWorkoutMinutes.collectAsState()
+
     val userProfile by userViewModel.user.observeAsState()
     val firstName = userProfile?.fullName?.split(" ")?.firstOrNull() ?: "Buddy"
+
     val userRepo = com.example.fit_buddy.repository.UserRepoImpl()
     var showRequestsScreen by remember { mutableStateOf(false) }
     var selectedProfileId by remember { mutableStateOf<String?>(null) }
+    var showFriendList by remember { mutableStateOf(false) }
+
+    val userId = userViewModel.getCurrentUserId() ?: ""
+
+    val notificationViewModel = remember {
+        NotificationViewModel(
+            repo = com.example.fit_buddy.repository.NotificationRepoImpl(),
+            userId = userId
+        )
+    }
+
     val context = LocalContext.current
     val feedViewModel: FeedViewModel = viewModel(
-        factory = FeedViewModelFactory(com.example.fit_buddy.repository.PostRepository(context), userRepo)
+        factory = FeedViewModelFactory(
+            com.example.fit_buddy.repository.PostRepository(context),
+            userRepo
+        )
     )
+
+    val intensityXP = remember(todayMins) { "${todayMins * 20} XP" }
+    val durationText = remember(todayMins) { "$todayMins Mins" }
+    val currentStatus = remember(todayMins) {
+        when {
+            todayMins >= 45 -> "Warrior"
+            todayMins >= 20 -> "Active"
+            todayMins > 0 -> "Started"
+            else -> "Resting"
+        }
+    }
 
     var selectedIndex by remember { mutableStateOf(0) }
     var cameraPermissionGranted by remember { mutableStateOf(false) }
     var showHistorySheet by remember { mutableStateOf(false) }
 
     if (showHistorySheet) {
-        WorkoutHistorySheet(userViewModel) {
+        WorkoutHistorySheet(history = history) {
             showHistorySheet = false
         }
     }
 
-    // Camera permission launcher
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
         cameraPermissionGranted = granted
     }
 
-    // Launch permission check whenever screen appears or state changes
     LaunchedEffect(cameraPermissionGranted) {
         if (!cameraPermissionGranted) {
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }
 
-    // Initialize ViewModel only after permission granted
     val viewModel: PoseViewModel? = remember(cameraPermissionGranted) {
         if (cameraPermissionGranted) PoseViewModel(PoseRepo(context)) else null
     }
@@ -135,7 +172,6 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
                     .navigationBarsPadding(),
                 contentAlignment = Alignment.Center
             ) {
-                // MAIN NAVIGATION BAR
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -153,7 +189,6 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
                     NavItemView(navItems[4], selectedIndex == 4) { selectedIndex = 4 }
                 }
 
-                // FLOATING AI BUTTON
                 Box(
                     modifier = Modifier
                         .size(76.dp)
@@ -186,38 +221,69 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
                 .padding(padding)
         ) {
             when (selectedIndex) {
-                0 -> WorkoutHomeScreen(userViewModel=userViewModel, userName = firstName, onSeeAllClick = {showHistorySheet=true})
+                0 -> WorkoutHomeScreen(
+                    userViewModel = userViewModel,
+                    userName = firstName,
+                    onSeeAllClick = { showHistorySheet = true },
+                    intensityXP = intensityXP,
+                    durationText = durationText,
+                    currentStatus = currentStatus,
+                    onNotificationClick = { selectedIndex = 5 }
+                )
 
                 1 -> {
-                    if (selectedProfileId != null) {
-                        OtherUserProfileScreen(
-                            userId = selectedProfileId!!,
-                            viewModel = feedViewModel,
-                            onBack = { selectedProfileId = null }
-                        )
-                    } else if (showRequestsScreen) {
-                        val requests by feedViewModel.friendRequests.observeAsState(emptyList())
-                        FriendRequestsScreen(
-                            requests = requests,
-                            onAccept = { id ->
-                                val requestObj = requests.find { it.userId == id }
-                                requestObj?.let { feedViewModel.respondToRequest(it, true) }
-                            },
-                            onDelete = { id ->
-                                val requestObj = requests.find { it.userId == id }
-                                requestObj?.let { feedViewModel.respondToRequest(it, false) }
-                            },
-                            onProfileClick = { id -> selectedProfileId = id },
-                            onBack = { showRequestsScreen = false }
-                        )
-                    } else {
-                        FeedSection(
-                            viewModel = feedViewModel,
-                            onRequestsClick = { showRequestsScreen = true },
-                            onProfileClick = { id -> selectedProfileId = id }
-                        )
+                    when {
+                        selectedProfileId != null -> {
+                            OtherUserProfileScreen(
+                                userId = selectedProfileId!!,
+                                viewModel = feedViewModel,
+                                onBack = { selectedProfileId = null }
+                            )
+                        }
+
+                        showRequestsScreen -> {
+                            val requests by feedViewModel.friendRequests.observeAsState(emptyList())
+                            val allUsers by feedViewModel.allUsers.observeAsState(emptyList())
+                            FriendRequestsScreen(
+                                requests = requests,
+                                allUsers = allUsers,
+                                onAccept = { id ->
+                                    val requestObj = requests.find { it.userId == id }
+                                    requestObj?.let { feedViewModel.respondToRequest(it, true) }
+                                },
+                                onDelete = { id ->
+                                    val requestObj = requests.find { it.userId == id }
+                                    requestObj?.let { feedViewModel.respondToRequest(it, false) }
+                                },
+                                onProfileClick = { id -> selectedProfileId = id },
+                                onBack = { showRequestsScreen = false }
+                            )
+                        }
+
+                        showFriendList -> {
+                            FriendListScreen(
+                                viewModel = feedViewModel,
+                                onBack = { showFriendList = false },
+                                onFriendClick = { id -> selectedProfileId = id }
+                            )
+                        }
+
+                        else -> {
+                            FeedSection(
+                                userViewModel = userViewModel,
+                                viewModel = feedViewModel,
+                                onRequestsClick = {
+                                    showRequestsScreen = true
+                                },
+                                onProfileClick = { id -> selectedProfileId = id },
+                                onFriendsListClick = {
+                                    showFriendList = true
+                                }
+                            )
+                        }
                     }
                 }
+
                 2 -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         if (cameraPermissionGranted && viewModel != null) {
@@ -227,22 +293,43 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
                         }
                     }
                 }
+
                 3 -> AchievementScreen()
                 4 -> ProfileScreen(feedViewModel)
+                5 -> NotificationScreen(
+                    viewModel = notificationViewModel,
+                    onBack = { selectedIndex = 0 }
+                )
             }
         }
     }
 }
 
 @Composable
-fun WorkoutHomeScreen(userViewModel: UserViewModel, userName: String, onSeeAllClick: () -> Unit) {
+fun WorkoutHomeScreen(
+    userViewModel: UserViewModel,
+    userName: String,
+    onSeeAllClick: () -> Unit,
+    intensityXP: String,
+    durationText: String,
+    currentStatus: String,
+    onNotificationClick: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
             .verticalScroll(rememberScrollState())
     ) {
-        HeaderSection(userName = userName)
+        HeaderSection(
+            userName = userName,
+            onNotificationClick = onNotificationClick,
+            stat1 = intensityXP,
+            stat2 = durationText,
+            stat3 = currentStatus,
+            userViewModel = userViewModel
+        )
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -259,9 +346,28 @@ fun WorkoutHomeScreen(userViewModel: UserViewModel, userName: String, onSeeAllCl
 }
 
 @Composable
-fun HeaderSection(userName: String) {
+fun HeaderSection(
+    userName: String,
+    onNotificationClick: () -> Unit,
+    stat1: String,
+    stat2: String,
+    stat3: String,
+    userViewModel: UserViewModel
+) {
+    val userProfile by userViewModel.user.observeAsState()
+
+    val bmiValue = remember(userProfile) {
+        val weight = userProfile?.weight?.toString()?.toDoubleOrNull() ?: 0.0
+        val height = userProfile?.height?.toString()?.toDoubleOrNull() ?: 0.0
+        if (weight > 0.0 && height > 0.0) {
+            val hInMeters = if (height > 3.0) height / 100.0 else height
+            val bmi = weight / (hInMeters * hInMeters)
+            String.format("%.1f", bmi)
+        } else "0.0"
+    }
+
     val greeting = getGreeting()
-    val subtitle = when(greeting){
+    val subtitle = when (greeting) {
         "Good Morning ☀️" -> "Time to kickstart your day!"
         "Good Afternoon 🌤️" -> "Keep the momentum going!"
         "Good Evening 🌅" -> "Ready to crush your goal today?"
@@ -291,7 +397,8 @@ fun HeaderSection(userName: String) {
                 modifier = Modifier
                     .size(42.dp)
                     .clip(CircleShape)
-                    .background(buttonLightGray),
+                    .background(buttonLightGray)
+                    .clickable { onNotificationClick() },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -310,13 +417,13 @@ fun HeaderSection(userName: String) {
                 .padding(horizontal = 20.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            StatCard("Calories", "420", R.drawable.icon_park_solid_fire,
+            StatCard("Effort", stat1, R.drawable.icon_park_solid_fire,
                 Brush.verticalGradient(listOf(rose50, rose100)))
 
-            StatCard("Workouts", "2", R.drawable.heart,
+            StatCard("Today", stat2, R.drawable.heart,
                 Brush.verticalGradient(listOf(lavender50, lavender100)))
 
-            StatCard("Goal", "85%", R.drawable.octicon_goal_16,
+            StatCard("Status", stat3, R.drawable.octicon_goal_16,
                 Brush.verticalGradient(listOf(mint50, mint100)))
         }
     }
@@ -434,7 +541,7 @@ fun WeeklyActivityCard(userViewModel: UserViewModel, onSeeAllClick: () -> Unit) 
         ) {
             Text("Weekly Activity", color = textPrimary, fontWeight = FontWeight.Medium, fontSize = 19.sp)
             Text("View All",
-                modifier = Modifier.clickable{ onSeeAllClick() },
+                modifier = Modifier.clickable { onSeeAllClick() },
                 color = lavender600,
             )
         }
@@ -446,12 +553,21 @@ fun WeeklyActivityCard(userViewModel: UserViewModel, onSeeAllClick: () -> Unit) 
 
 @Composable
 fun WeeklyBars(userViewModel: UserViewModel) {
+    val workoutViewModel: WorkoutViewModel = viewModel()
+    val history by workoutViewModel.workoutHistory.collectAsState(initial = emptyList())
     val maxHeightDp = 160.dp
-    val fillPercents = listOf(0.5f, 0.75f, 1.0f, 0.7f, 0.8f, 0.9f, 0.6f)
     val days = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
-    // Note: workoutMinutes is not in UserViewModel - you need to add it there or use WorkoutViewModel
-    // Temporary dummy map to make it compile - replace with real data source
-    val dailyStats by remember { mutableStateOf(mapOf<String, Int>()) }
+    val goalminutes = 15f
+
+    val dailyStats = remember(history) {
+        val today = LocalDate.now()
+        days.associateWith { dayLabel ->
+            val matchingDate = (0..6).map { today.minusDays(it.toLong()) }
+                .find { it.dayOfWeek.name.take(3).equals(dayLabel, ignoreCase = true) }
+
+            history.find { it.date == matchingDate?.toString() }?.minutes ?: 0
+        }
+    }
 
     Row(
         Modifier.fillMaxWidth(),
@@ -460,16 +576,15 @@ fun WeeklyBars(userViewModel: UserViewModel) {
     ) {
         days.forEach { dayLabel ->
             val minutes = dailyStats[dayLabel] ?: 0
-            val barColor = when{
-                minutes >= 15 -> lavender400
-                minutes > 0 -> Color(0xFF81C784)
-                else -> buttonLightGray
-            }
+            val fraction = (minutes / goalminutes).coerceIn(0f, 1f)
+
             val barHeight = when {
-                minutes >= 15 -> maxHeightDp
-                minutes > 0 -> (maxHeightDp.value * 0.5f).dp
-                else -> 20.dp
+                minutes >= goalminutes -> maxHeightDp
+                minutes > 0 -> (maxHeightDp * fraction).coerceAtLeast(12.dp)
+                else -> 4.dp
             }
+
+            val barColor = if (minutes >= 15) lavender500 else lavender500.copy(alpha = 0.3f)
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
@@ -541,7 +656,6 @@ fun WorkoutCard(
     duration: String,
     calories: String,
     image: Int,
-
 ) {
     Box(
         modifier = Modifier
@@ -630,8 +744,6 @@ fun WorkoutCard(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WorkoutListSection(onSeeAllClick: () -> Unit) {
-    val context = LocalContext.current
-
     val featuredWorkouts = listOf(
         FeaturedWorkout("Full Body HIT", "Intermediate", "25 min", "320 cal", R.drawable.workout_1),
         FeaturedWorkout("Core Strength", "Beginner", "18 min", "210 cal", R.drawable.workout_2),
@@ -646,7 +758,7 @@ fun WorkoutListSection(onSeeAllClick: () -> Unit) {
     )
 
     LaunchedEffect(Unit) {
-        while(true) {
+        while (true) {
             delay(3000)
             if (!pagerState.isScrollInProgress) {
                 val nextPage = (pagerState.currentPage + 1) % featuredWorkouts.size
@@ -711,39 +823,24 @@ fun WorkoutListSection(onSeeAllClick: () -> Unit) {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewWorkoutScreen() {
-    val navController = rememberNavController()
-
-    // Mock UserViewModel for preview (using correct factory)
-    val mockViewModel: UserViewModel = viewModel(
-        factory = UserViewModelFactory(
-            application = LocalContext.current.applicationContext as android.app.Application,
-            repository = UserRepoImpl()
-        )
-    )
-
-    WorkoutScreen(
-        navController = navController,
-        userViewModel = mockViewModel
-    )
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutHistorySheet(
-    userViewModel: UserViewModel,
+    history: List<WorkoutDay>,
     onDismiss: () -> Unit
 ) {
-    // Note: workoutMinutes is not in UserViewModel - temporary dummy data to compile
-    val dailyStats by remember { mutableStateOf(mapOf<String, Int>()) }
-    val sheetState = rememberModalBottomSheetState()
     val daysOfWeek = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+    val dailyStats = remember(history) {
+        val today = LocalDate.now()
+        daysOfWeek.associateWith { dayLabel ->
+            val matchingDate = (0..6).map { today.minusDays(it.toLong()) }
+                .find { it.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()) == dayLabel }
+            history.find { it.date == matchingDate?.toString() }?.minutes ?: 0
+        }
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = sheetState,
         containerColor = Color.White,
         dragHandle = { BottomSheetDefaults.DragHandle(color = lavender500) }
     ) {
@@ -780,6 +877,7 @@ fun WorkoutHistorySheet(
 
 @Composable
 fun HistoryRow(day: String, minutes: Int) {
+    val goalMinutes = 15f
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -798,13 +896,18 @@ fun HistoryRow(day: String, minutes: Int) {
         Box(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
             Box(Modifier.fillMaxWidth().height(8.dp).clip(CircleShape).background(Color.LightGray.copy(0.3f)))
 
-            val progressWidth = (minutes / 30f).coerceIn(0.05f, 1f)
+            val progressWidth = if (minutes > 0) {
+                (minutes / goalMinutes).coerceIn(0.1f, 1.0f)
+            } else 0f
+
+            val barColor = if (minutes >= 15) lavender500 else lavender500.copy(alpha = 0.3f)
+
             Box(
                 Modifier
                     .fillMaxWidth(progressWidth)
                     .height(8.dp)
                     .clip(CircleShape)
-                    .background(if (minutes >= 15) lavender400 else Color(0xFF81C784))
+                    .background(barColor)
             )
         }
 

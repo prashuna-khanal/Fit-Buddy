@@ -27,13 +27,17 @@ import coil.compose.AsyncImage
 import com.example.fit_buddy.R
 import com.example.fit_buddy.viewmodel.FeedViewModel
 import com.example.fit_buddy.ui.theme.backgroundLightLavender
+import com.example.fit_buddy.viewmodel.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyPostsScreen(
+    userViewModel: UserViewModel,
     viewModel: FeedViewModel,
     onBack: () -> Unit // navigate back to FeedSection
 ) {
+    val currentUser by userViewModel.user.observeAsState()
+    val allUsers by viewModel.allUsers.observeAsState(emptyList())
 
     val myUsername =viewModel.currentUserId
     // observing real time data from Firebase via ViewModel
@@ -203,7 +207,9 @@ fun MyPostsScreen(
 
                         // resusing your existing FeedCard for consistent design
                         FeedCard(post = post, onUserClick = { },
+                            allUsers = allUsers,
                             currentUserId = viewModel.currentUserId,
+                            currentUserProfilePic = currentUser?.profileImage,
                             onLikeClick = { viewModel.toggleLike(post.id) },
                             onDeleteClick = {
                                 viewModel.deletePost(post.id)

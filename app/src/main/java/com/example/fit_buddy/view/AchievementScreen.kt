@@ -1,7 +1,6 @@
 package com.example.fit_buddy.view
 
 import android.app.Application
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,23 +13,22 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.ui.platform.LocalContext
 import com.example.fit_buddy.model.UserModel
+import com.example.fit_buddy.repository.UserRepoImpl
 import com.example.fit_buddy.ui.theme.*
 import com.example.fit_buddy.viewmodel.UserViewModel
 import com.example.fit_buddy.viewmodel.WorkoutViewModel
-import com.example.fit_buddy.repository.UserRepoImpl
+import java.time.LocalDate
+import java.time.format.TextStyle
+import java.util.Locale
 import kotlin.math.abs
 
 /* ================== HELPER FUNCTIONS ================== */
@@ -44,10 +42,6 @@ fun estimateBodyFat(bmi: Double, gender: String, age: Int = 25): Double {
     return (1.20 * bmi) + (0.23 * age) - (10.8 * genderValue) - 5.4
 }
 
-fun estimateMuscleMass(weight: Double, bodyFat: Double): Double {
-    return weight * (1 - bodyFat / 100)
-}
-
 fun formatChange(value: Double, unit: String): String {
     return when {
         value > 0 -> "↑ ${String.format("%.1f", value)} $unit"
@@ -58,12 +52,12 @@ fun formatChange(value: Double, unit: String): String {
 
 /* ================== MAIN SCREEN ================== */
 @Composable
-fun AchievementScreen() {
-    val context = LocalContext.current
+fun AchievementScreen( ){
+val context = LocalContext.current
     val application = context.applicationContext as Application
     val userRepo = remember { UserRepoImpl() }
 
-    // ✅ Correct Factory for AndroidViewModel
+    //  Correct Factory for AndroidViewModel
     val userViewModel: UserViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
             override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
@@ -74,13 +68,10 @@ fun AchievementScreen() {
 
     val workoutViewModel: WorkoutViewModel = viewModel()
     val streakData by workoutViewModel.streakData.collectAsState(WorkoutViewModel.StreakData())
-    val graphData by workoutViewModel.graphData.collectAsState(WorkoutViewModel.GraphData())
     val user by userViewModel.user.observeAsState()
 
     // Load user data when screen opens
-    LaunchedEffect(Unit) {
-        userViewModel.loadCurrentUser()
-    }
+    LaunchedEffect(Unit) { userViewModel.loadCurrentUser() }
 
     Scaffold(containerColor = backgroundLightLavender) { padding ->
         Column(
@@ -100,9 +91,9 @@ fun AchievementScreen() {
             GoalCard(workoutViewModel)
             Spacer(Modifier.height(26.dp))
 
-            Text("Daily Workout Time (Last 30 Days)", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textPrimary)
+            Text("Daily Workout Heatmap", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textPrimary)
             Spacer(Modifier.height(16.dp))
-            SimpleBarChart(minutesList = graphData.minutes)
+            WorkoutHeatMapScreen(viewModel = workoutViewModel)
             Spacer(Modifier.height(30.dp))
 
             Text("Body Metrics", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textPrimary)
@@ -113,6 +104,7 @@ fun AchievementScreen() {
     }
 }
 
+/* ================== STREAK CARD ================== */
 @Composable
 fun StreakCard(streakData: WorkoutViewModel.StreakData) {
     Box(
@@ -153,38 +145,6 @@ fun DayCheck(day: String, checked: Boolean) {
     }
 }
 
-/* ================== BAR CHART ================== */
-@Composable
-fun SimpleBarChart(minutesList: List<Int>) {
-    if (minutesList.isEmpty() || minutesList.all { it == 0 }) {
-        Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-            Text("No workout data yet", color = textSecondary)
-        }
-        return
-    }
-
-    val maxMinutes = minutesList.maxOrNull()?.coerceAtLeast(1) ?: 1
-    val barWidth = 8.dp
-    val spacing = 4.dp
-
-    Canvas(Modifier.fillMaxWidth().height(200.dp).padding(horizontal = 8.dp)) {
-        val canvasHeight = size.height
-        val barWidthPx = barWidth.toPx()
-        val spacingPx = spacing.toPx()
-
-        minutesList.forEachIndexed { index, minutes ->
-            val barHeight = (minutes.toFloat() / maxMinutes) * (canvasHeight * 0.8f)
-            val x = index * (barWidthPx + spacingPx)
-            drawRoundRect(
-                color = lavender500,
-                topLeft = Offset(x, canvasHeight - barHeight),
-                size = Size(barWidthPx, barHeight),
-                cornerRadius = CornerRadius(4f, 4f)
-            )
-        }
-    }
-}
-
 /* ================== GOAL CARD ================== */
 @Composable
 fun GoalCard(workoutViewModel: WorkoutViewModel) {
@@ -220,13 +180,7 @@ fun GoalCard(workoutViewModel: WorkoutViewModel) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
             title = { Text("Set Daily Goal") },
-            text = {
-                OutlinedTextField(
-                    value = tempInput,
-                    onValueChange = { tempInput = it },
-                    label = { Text("Minutes") }
-                )
-            },
+            text = { OutlinedTextField(value = tempInput, onValueChange = { tempInput = it }, label = { Text("Minutes") }) },
             confirmButton = {
                 TextButton(onClick = {
                     goalMinutes = tempInput.toIntOrNull() ?: goalMinutes
@@ -250,23 +204,17 @@ fun BodyMetricsGrid(user: UserModel?, userViewModel: UserViewModel) {
     val bmi = calculateBMI(weight, height)
     val bodyFat = estimateBodyFat(bmi, gender)
 
-
     val bmiStatus = when {
         bmi < 18.5 -> "Underweight"
         bmi in 18.5..24.9 -> "Healthy"
         bmi in 25.0..29.9 -> "Overweight"
         else -> "Obese"
     }
+
     Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             MetricCard("Weight", String.format("%.1f", weight), "kg", "Target: 65kg", Modifier.weight(1f)) { showWeightDialog = true }
-            MetricCard(
-                "BMI",
-                String.format("%.1f", bmi),
-                "",
-                bmiStatus,
-                Modifier.weight(1f)
-            )
+            MetricCard("BMI", String.format("%.1f", bmi), "", bmiStatus, Modifier.weight(1f))
         }
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -275,7 +223,6 @@ fun BodyMetricsGrid(user: UserModel?, userViewModel: UserViewModel) {
         }
     }
 
-    // Dialogs for editing
     if (showWeightDialog) {
         var weightEdit by remember { mutableStateOf(weight.toString()) }
         AlertDialog(
@@ -293,6 +240,7 @@ fun BodyMetricsGrid(user: UserModel?, userViewModel: UserViewModel) {
     }
 }
 
+/* ================== METRIC CARD ================== */
 @Composable
 fun MetricCard(title: String, value: String, unit: String, subtext: String, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null) {
     Column(
@@ -309,5 +257,72 @@ fun MetricCard(title: String, value: String, unit: String, subtext: String, modi
             Text(unit, fontSize = 13.sp, color = textMuted, modifier = Modifier.padding(start = 4.dp))
         }
         Text(subtext, fontSize = 12.sp, color = lavender500, fontWeight = FontWeight.Medium)
+    }
+}
+
+/* ================== HEATMAP ================== */
+@Composable
+fun WorkoutHeatMapScreen(viewModel: WorkoutViewModel) {
+    val history by viewModel.workoutHistory.collectAsState(initial = emptyList())
+
+    val today = LocalDate.now()
+    val year = today.year
+    val month = today.monthValue
+
+    val activeDays = history
+        .filter { it.minutes >= 15 }
+        .mapNotNull {
+            val date = LocalDate.parse(it.date)
+            if (date.year == year && date.monthValue == month) date.dayOfMonth else null
+        }.toSet()
+
+    WorkoutHeatMap(
+        year = year,
+        month = month,
+        activeDays = activeDays,
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+// heat map showing which day worked out
+@Composable
+fun WorkoutHeatMap(year: Int, month: Int, activeDays: Set<Int>, modifier: Modifier = Modifier) {
+    val daysInMonth = java.time.YearMonth.of(year, month).lengthOfMonth()
+    val firstDayOfWeek = java.time.LocalDate.of(year, month, 1).dayOfWeek.value // 1=Monday
+
+    Column(modifier = modifier.padding(16.dp)) {
+        // Weekday labels
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            listOf("Mon","Tue","Wed","Thu","Fri","Sat","Sun").forEach {
+                Text(it, fontSize = 12.sp, color = textMuted)
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+
+        val totalCells = daysInMonth + (firstDayOfWeek - 1)
+        val rows = (totalCells / 7) + 1
+
+        for (row in 0 until rows) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                for (col in 0..6) {
+                    val dayNumber = row * 7 + col - (firstDayOfWeek - 2)
+                    if (dayNumber in 1..daysInMonth) {
+                        val isActive = activeDays.contains(dayNumber)
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(if (isActive) Color(0xFF8E24AA) else Color(0xFFE0E0E0)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("$dayNumber", fontSize = 12.sp, color = if (isActive) Color.White else textMuted)
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.size(32.dp))
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+        }
     }
 }

@@ -16,6 +16,7 @@ import com.example.fit_buddy.viewmodel.UserViewModel
 import com.example.fit_buddy.viewmodel.UserViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
 import androidx.navigation.NavController
+import com.example.fit_buddy.viewmodel.NotificationViewModel
 
 class LandingActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,6 +42,7 @@ class LandingActivity : ComponentActivity() {
                 )
             )
 
+
             NavHost(
                 navController = navController,
                 startDestination = "landing"
@@ -48,13 +50,22 @@ class LandingActivity : ComponentActivity() {
                 composable("landing") {
                     LandingScreen(navController, userViewModel)
                 }
+
                 composable("signin") {
                     LoginScreen(navController, userViewModel)
                 }
+
                 composable("signup") {
                     SignUpScreen(navController, userViewModel)
                 }
-            }
+                composable("forgot") {
+                    ForgetPasswordScreen( navController = navController,
+                        viewModel = userViewModel)
+                }
+
+                }
+
+
         }
     }
 }
