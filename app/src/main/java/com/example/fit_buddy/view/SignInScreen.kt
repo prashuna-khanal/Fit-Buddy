@@ -132,7 +132,9 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
                     text = "Forgot Password?",
                     fontSize = 12.sp,
                     color = Color(0xFF6200EE),
-                    modifier = Modifier.clickable { /* Reset Logic */ }
+                    modifier = Modifier.clickable {
+                        navController.navigate("forgot")
+                    }
                 )
             }
 
