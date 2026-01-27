@@ -174,6 +174,17 @@ class UserRepoImpl : UserRepo {
                 callback(false, it.message ?: "Upload failed")
             }    }
 
+    override fun sendPasswordResetEmail(email: String, callback: (Boolean, String) -> Unit) {
+        val auth = FirebaseAuth.getInstance()
+        auth.sendPasswordResetEmail(email)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    callback(true, "Reset link sent to $email")
+                } else {
+                    callback(false, task.exception?.message ?: "Failed to send reset link")
+                }
+            }
+    }
 
 
 
