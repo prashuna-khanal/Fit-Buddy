@@ -140,8 +140,5 @@ class UserViewModel(
             .putBoolean("notifications_enabled", enabled)
             .apply()
     }
-    fun sendPasswordReset(email: String, callback: (Boolean, String) -> Unit) {
-        repository.sendPasswordResetEmail(email, callback)
-    }
 
 }
