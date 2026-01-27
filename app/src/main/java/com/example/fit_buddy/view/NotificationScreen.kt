@@ -34,7 +34,7 @@ fun NotificationScreen(
     onBack: () -> Unit
 ) {
     // Load notifications for current user when this screen is shown
-    val notifications by viewModel.notifications.collectAsState(initial = emptyList())
+    val notifications by viewModel.notifications.collectAsState()
 
     // Scaffold with TopAppBar
     Scaffold(
