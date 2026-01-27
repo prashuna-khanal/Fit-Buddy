@@ -49,9 +49,9 @@ class LandingActivity : ComponentActivity() {
                     LandingScreen(navController, userViewModel)
                 }
 
-                    composable("signin") {
-                        LoginScreen(navController, userViewModel)
-                    }
+                composable("signin") {
+                    LoginScreen(navController, userViewModel)
+                }
 
                 composable("signup") {
                     SignUpScreen(navController, userViewModel)

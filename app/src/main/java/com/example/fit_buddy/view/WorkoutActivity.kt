@@ -88,6 +88,7 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel
     var selectedProfileId by remember { mutableStateOf<String?>(null) }
     var showNotificationScreen by remember { mutableStateOf(false) }
 
+
     val userId = userViewModel.getCurrentUserId() ?: ""
 
     val notificationViewModel = remember {
@@ -204,7 +205,7 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel
                     userViewModel = userViewModel,
                     userName = firstName,
                     onSeeAllClick = { showHistorySheet = true },
-                    onNotificationClick = { selectedIndex=5 })
+                    onNotificationClick = { selectedIndex = 5 })
 
                 1 -> {
                     if (selectedProfileId != null) {
@@ -236,6 +237,7 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel
                         )
                     }
                 }
+
                 2 -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         if (cameraPermissionGranted && viewModel != null) {
@@ -245,9 +247,14 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel
                         }
                     }
                 }
+
                 3 -> AchievementScreen()
                 4 -> ProfileScreen(feedViewModel)
-                5 -> NotificationScreen(viewModel = notificationViewModel)
+                5 -> NotificationScreen(
+                    viewModel = notificationViewModel,
+                    onBack = {}
+
+                )
             }
             if (showHistorySheet) {
                 WorkoutHistorySheet(userViewModel) { showHistorySheet = false }
@@ -576,7 +583,7 @@ fun WorkoutCard(
     calories: String,
     image: Int,
 
-) {
+    ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
