@@ -171,9 +171,7 @@ fun RegistrationBody() {
                                 text = { Text(it) },
                                 onClick = {
 
-                                    selectedGender = it
-                                    gender = it
-                                    expanded = false
+
 
 
                                 }
