@@ -55,7 +55,6 @@ fun ForgetPasswordScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                // Screen Title
                 Text(
                     text = "Forgot Password",
                     fontSize = 26.sp,
@@ -65,7 +64,6 @@ fun ForgetPasswordScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // Instruction
                 Text(
                     text = "Don't worry! Enter your email and we’ll send you a reset link.",
                     fontSize = 14.sp,
@@ -95,11 +93,10 @@ fun ForgetPasswordScreen(
                         if (email.isEmpty()) {
                             Toast.makeText(context, "Please enter your email", Toast.LENGTH_SHORT).show()
                         } else {
-                            // Call ViewModel function which calls Firebase via repository
                             viewModel.sendPasswordReset(email) { success, msg ->
                                 if (success) {
                                     Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                                    navController.popBackStack() // back to login
+                                    navController.popBackStack()
                                 } else {
                                     Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
                                 }
@@ -135,7 +132,6 @@ fun ForgetPasswordScreen(
 
                 Spacer(modifier = Modifier.height(18.dp))
 
-                // Back to Login Button
                 TextButton(
                     onClick = { navController.popBackStack() }
                 ) {

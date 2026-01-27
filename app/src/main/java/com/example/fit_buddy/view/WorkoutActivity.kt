@@ -2,6 +2,7 @@ package com.example.fit_buddy.view
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Application
 import android.content.Intent
 
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -54,6 +55,7 @@ import com.example.fit_buddy.viewmodel.FeedViewModelFactory
 import com.example.fit_buddy.viewmodel.UserViewModel
 import com.example.fit_buddy.view.OtherUserProfileScreen
 import com.example.fit_buddy.viewmodel.NotificationViewModel
+import com.example.fit_buddy.viewmodel.UserViewModelFactory
 import com.example.fitbuddy.repository.PoseRepo
 import com.example.fitbuddy.viewmodel.PoseViewModel
 
@@ -121,14 +123,12 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel
         cameraPermissionGranted = granted
     }
 
-    // Launch permission check whenever screen appears or state changes
     LaunchedEffect(cameraPermissionGranted) {
         if (!cameraPermissionGranted) {
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }
 
-    // Initialize ViewModel only after permission granted
     val viewModel: PoseViewModel? = remember(cameraPermissionGranted) {
         if (cameraPermissionGranted) PoseViewModel(PoseRepo(context)) else null
     }
@@ -268,7 +268,7 @@ fun WorkoutHomeScreen(
     userViewModel: UserViewModel,
     userName: String,
     onSeeAllClick: () -> Unit,
-    onNotificationClick: () -> Unit // Add this
+    onNotificationClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -335,7 +335,7 @@ fun HeaderSection(
                     .size(42.dp)
                     .clip(CircleShape)
                     .background(buttonLightGray)
-                    .clickable { onNotificationClick() }, // triggers navigation
+                    .clickable { onNotificationClick() },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -490,8 +490,7 @@ fun WeeklyBars(userViewModel: UserViewModel) {
     val maxHeightDp = 160.dp
     val fillPercents = listOf(0.5f, 0.75f, 1.0f, 0.7f, 0.8f, 0.9f, 0.6f)
     val days = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
-    // Note: workoutMinutes is not in UserViewModel - you need to add it there or use WorkoutViewModel
-    // Temporary dummy map to make it compile - replace with real data source
+
     val dailyStats by remember { mutableStateOf(mapOf<String, Int>()) }
 
     Row(
@@ -760,7 +759,7 @@ fun PreviewWorkoutScreen() {
     // Mock UserViewModel for preview (using correct factory)
     val mockViewModel: UserViewModel = viewModel(
         factory = UserViewModelFactory(
-            application = LocalContext.current.applicationContext as android.app.Application,
+            application = LocalContext.current.applicationContext as Application,
             repository = UserRepoImpl()
         )
     )
@@ -777,7 +776,6 @@ fun WorkoutHistorySheet(
     userViewModel: UserViewModel,
     onDismiss: () -> Unit
 ) {
-    // Note: workoutMinutes is not in UserViewModel - temporary dummy data to compile
     val dailyStats by remember { mutableStateOf(mapOf<String, Int>()) }
     val sheetState = rememberModalBottomSheetState()
     val daysOfWeek = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
