@@ -167,9 +167,4 @@ fun LogoutItem(onClick: () -> Unit) {
         )
     }
 }
-//
-//@Preview
-//@Composable
-//fun ProfilePreview(){
-//    ProfileScreen(v)
-//}
+
