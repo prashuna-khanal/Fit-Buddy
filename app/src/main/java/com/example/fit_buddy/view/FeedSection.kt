@@ -33,14 +33,18 @@ import com.example.fit_buddy.model.FeedPost
 import com.example.fit_buddy.ui.theme.backgroundLightLavender
 import com.example.fit_buddy.ui.theme.textMuted
 import com.example.fit_buddy.ui.theme.textPrimary
+import com.example.fit_buddy.viewmodel.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedSection(
+    userViewModel: UserViewModel,
     viewModel: com.example.fit_buddy.viewmodel.FeedViewModel,
     onRequestsClick: () -> Unit,
-    onProfileClick: (String) -> Unit
+    onProfileClick: (String) -> Unit,
+    onFriendsListClick: () -> Unit
 ) {
+
     val context = LocalContext.current
     //  state from ViewModel
     val friendsPosts by viewModel.friendsPosts.observeAsState(emptyList())
@@ -165,12 +169,12 @@ fun FeedSection(
                                         .clip(CircleShape)
                                         .background(Color.LightGray),
                                     contentScale = ContentScale.Crop,
-                                    // Optional: Use a placeholder while loading
                                     placeholder = painterResource(R.drawable.outline_contacts_product_24),
                                     error = painterResource(R.drawable.outline_contacts_product_24)
                                 )
                                 Spacer(Modifier.width(12.dp))
                                 Text(user.fullName, fontWeight = FontWeight.Medium, color = Color.Black)
+
                             }
                         }
                     }
@@ -208,6 +212,8 @@ fun FeedSection(
                                 FeedCard(
                                     post = post,
                                     currentUserId = viewModel.currentUserId,
+                                    allUsers=allUsers,
+                                    currentUserProfilePic = userViewModel.user.value?.profileImage,
                                     onUserClick = { onProfileClick(post.userId) },
                                     onLikeClick = { viewModel.toggleLike(post.id) },
                                     onDeleteClick = if (selectedFilter == "My Post") {
@@ -227,11 +233,20 @@ fun FeedSection(
 fun FeedCard(
     post: FeedPost,
     currentUserId: String,
+    allUsers: List<com.example.fit_buddy.model.UserModel>,
+    currentUserProfilePic:String?,
     onUserClick: () -> Unit,
     onLikeClick: () -> Unit,
     onDeleteClick: (() -> Unit)? = null
 ) {
+    val liveUser = allUsers.find { it.userId == post.userId }
+//    val displayPic = liveUser?.profileImage ?: post.getSafeProfilePic()
+    val displayPic=liveUser?.profileImage
+    ?: (if(post.userId==currentUserId) currentUserProfilePic else null)
+    ?: post.getSafeProfilePic()
+    val displayName = liveUser?.fullName ?: post.username
     val isLikedByMe = post.likedBy.containsKey(currentUserId)
+
 
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
@@ -245,14 +260,15 @@ fun FeedCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 AsyncImage(
-                    model = post.getSafeProfilePic().ifEmpty { R.drawable.outline_contacts_product_24 },
+                    model = displayPic,
+//                    model = post.getSafeProfilePic().ifEmpty { R.drawable.outline_contacts_product_24 },
                     contentDescription = null,
                     modifier = Modifier.size(36.dp).clip(CircleShape).background(Color.LightGray),
                     contentScale = ContentScale.Crop,
                     error = painterResource(R.drawable.outline_contacts_product_24)
                 )
                 Spacer(Modifier.width(10.dp))
-                Text(text = post.username, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(text = displayName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
 
                 Spacer(Modifier.weight(1f))
 
