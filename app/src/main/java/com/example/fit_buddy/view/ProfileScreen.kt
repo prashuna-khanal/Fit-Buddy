@@ -48,7 +48,7 @@ fun ProfileScreen(viewModel: FeedViewModel,userViewModel: UserViewModel = viewMo
                    // println("Clicked on friend: $friendId")
                 }
             )//
-            3 -> PrivacySecurityScreenComposable (onBackClick = { selectedIndex = 0 })
+//            3 -> PrivacySecurityScreenComposable (onBackClick = { selectedIndex = 0 })
             4 -> AppSettingsScreenComposable (onBackClick = { selectedIndex = 0 })
             5 -> HelpSupportScreenComposable(onBackClick = { selectedIndex = 0 })
         }
