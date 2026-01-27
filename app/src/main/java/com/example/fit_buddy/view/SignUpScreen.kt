@@ -25,9 +25,12 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.fit_buddy.R
 import com.example.fit_buddy.model.UserModel
+import com.example.fit_buddy.util.UserSession
+import com.example.fit_buddy.util.scheduleDailyReminder
 import com.example.fit_buddy.viewmodel.UserViewModel
 import com.google.firebase.auth.FirebaseAuth
 import java.util.*
+import com.example.fit_buddy.utils.NotificationUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -365,11 +368,24 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
                                 dob = dob,
                                 gender = gender,
                                 weight = weight,
-                                height = height   // ← now included
+                                height = height
                             )
 
                             viewModel.addUserToDatabase(userId, userModel) { dbSuccess, _ ->
                                 if (dbSuccess) {
+                                    // Save user session
+                                    UserSession.currentUserId = userId
+                                    UserSession.currentUserName = fullName.trim()
+
+                                    // Send welcome notification
+                                    NotificationUtils.sendWelcomeNotification(
+                                        userId = userId,
+                                        fullName = fullName
+                                    )
+
+                                    // Schedule daily reminder
+                                    scheduleDailyReminder(context)
+
                                     FirebaseAuth.getInstance().signOut()
 
                                     Toast.makeText(
@@ -383,10 +399,9 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
                                     }
                                 }
                             }
-                        } else {
-                            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
                         }
                     }
+
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -400,6 +415,8 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
 
             Spacer(Modifier.height(40.dp))
         }
+
+
     }
 }
 

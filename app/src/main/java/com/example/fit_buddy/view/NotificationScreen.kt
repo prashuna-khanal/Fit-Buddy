@@ -1,55 +1,122 @@
 package com.example.fit_buddy.view
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fit_buddy.model.AppNotification
 import com.example.fit_buddy.ui.theme.lavender100
+import com.example.fit_buddy.viewmodel.NotificationViewModel
+import java.text.SimpleDateFormat
+import java.util.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.ui.res.painterResource
 
 
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationScreen(
-    notification: AppNotification?,
-    onDismiss: () -> Unit
+    viewModel: NotificationViewModel,
+    onBack: () -> Unit
 ) {
-    AnimatedVisibility(
-        visible = notification != null,
-        enter = slideInVertically(),
-        exit = slideOutVertically()
-    ) {
-        notification?.let {
-            Card(
+    val notifications by viewModel.notifications.collectAsState()
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Notifications") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            painter = androidx.compose.ui.res.painterResource(id = com.example.fit_buddy.R.drawable.outline_arrow_back_ios_24),
+                            contentDescription = "Back"
+                        )
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        if (notifications.isEmpty()) {
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp)
-                    .clickable { onDismiss() },
-                colors = CardDefaults.cardColors(containerColor = lavender100)
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
             ) {
-                Column(Modifier.padding(16.dp)) {
-                    Text(it.title, fontWeight = FontWeight.Bold)
-                    Text(it.message, fontSize = 14.sp)
+                Text(
+                    text = "No notifications yet",
+                    color = Color.Gray,
+                    fontSize = 16.sp
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
+                items(notifications) { notif ->
+                    val isFriendRequest = notif.type == "FRIEND_REQUEST"
+                    val background = if (isFriendRequest) lavender100.copy(alpha = 0.5f) else Color.White
+
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                            .clickable {
+                                viewModel.markAsRead(notif.id)
+                                // TODO: navigate to profile if friend request
+                            },
+                        colors = CardDefaults.cardColors(containerColor = background),
+                        elevation = CardDefaults.cardElevation(2.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                text = notif.title,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(notif.message, fontSize = 14.sp)
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = relativeTime(notif.timestamp),
+                                fontSize = 12.sp,
+                                color = Color.Gray
+                            )
+                            if (!notif.isRead) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text("• New", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
+                            }
+                        }
+                    }
                 }
             }
         }
     }
 }
-//@Preview
-//@Composable
-//fun NotificationScreenPreview() {
-//    NotificationScreen()
-//}
 
+// Utility to format timestamps
+private fun relativeTime(timestamp: Long): String {
+    val diff = System.currentTimeMillis() - timestamp
+    return when {
+        diff < 60000L -> "Just now"
+        diff < 3600000L -> "${diff / 60000} min ago"
+        diff < 86400000L -> "${diff / 3600000} hr ago"
+        else -> SimpleDateFormat("MMM d", Locale.getDefault()).format(Date(timestamp))
+    }
+}

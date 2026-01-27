@@ -1,30 +1,12 @@
 package com.example.fit_buddy.view
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,46 +20,44 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.fit_buddy.R
 import com.example.fit_buddy.model.FriendRequest
+import com.example.fit_buddy.utils.NotificationUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FriendRequestsScreen(requests: List<com.example.fit_buddy.model.FriendRequest>,
-                         onAccept:(String) -> Unit,
-
-                         onDelete:(String) -> Unit,
-                         onProfileClick:(String) -> Unit,
-                         onBack:() -> Unit
-){
+fun FriendRequestsScreen(
+    requests: List<FriendRequest>,
+    onAccept: (String) -> Unit,
+    onDelete: (String) -> Unit,
+    onProfileClick: (String) -> Unit,
+    onBack: () -> Unit
+) {
     val confirmLavender = Color(0xFFD9C8F9)
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        "Friend Requests", fontWeight = FontWeight.Bold
-                    )
-                },
+                title = { Text("Friend Requests", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(painterResource(R.drawable.outline_arrow_back_ios_24),null)
+                        Icon(painterResource(R.drawable.outline_arrow_back_ios_24), contentDescription = null)
                     }
                 }
             )
         }
     ) { padding ->
-        if(requests.isEmpty()){
-            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center){
+        if (requests.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 Text("No new Friend Requests", color = Color.Gray)
             }
-        }else{
+        } else {
             LazyColumn(modifier = Modifier.padding(padding).fillMaxSize()) {
-                items(requests){
-                    request ->
-                    Row (
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                items(requests) { request ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-//                        viewing profile of sent request
                         AsyncImage(
                             model = request.profilePicUrl,
                             contentDescription = null,
@@ -89,22 +69,25 @@ fun FriendRequestsScreen(requests: List<com.example.fit_buddy.model.FriendReques
                         )
                         Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
                             Text(
-                                text = request.username.ifEmpty { "Unkown User" },
-//                                modifier = Modifier.weight(1f).padding(start = 12.dp),
+                                text = request.username.ifEmpty { "Unknown User" },
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 16.sp,
                                 color = Color.Black,
                                 maxLines = 1,
                                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-
                             )
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
-
-
-//                        buttons
                             Button(
-                                onClick = { onAccept(request.userId) },
+                                onClick = {
+                                    onAccept(request.userId)
+                                    // Send accepted notification to the requester
+                                    val acceptorName = "Your Name" // Replace with actual current user name from ViewModel or auth
+                                    NotificationUtils.sendFriendAcceptedNotification(
+                                        receiverUserId = request.userId, // requester
+                                        acceptorName = acceptorName
+                                    )
+                                },
                                 shape = RoundedCornerShape(8.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = confirmLavender),
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
@@ -113,17 +96,13 @@ fun FriendRequestsScreen(requests: List<com.example.fit_buddy.model.FriendReques
                                 Text("Confirm", color = Color.Black, fontSize = 12.sp)
                             }
                             Spacer(Modifier.width(4.dp))
-
                             TextButton(onClick = { onDelete(request.userId) }) {
                                 Text("Delete", color = Color.Gray)
                             }
-
                         }
                     }
                 }
             }
         }
-
     }
-
 }

@@ -171,6 +171,7 @@ fun FeedSection(
                                 )
                                 Spacer(Modifier.width(12.dp))
                                 Text(user.fullName, fontWeight = FontWeight.Medium, color = Color.Black)
+
                             }
                         }
                     }

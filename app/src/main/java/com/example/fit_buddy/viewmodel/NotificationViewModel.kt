@@ -9,13 +9,12 @@ import kotlinx.coroutines.flow.stateIn
 class NotificationViewModel(
     private val repo: NotificationRepo,
     private val userId: String
-    ) : ViewModel() {
+) : ViewModel() {
 
-        val notifications = repo.getNotifications(userId)
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
+    val notifications = repo.getNotifications(userId)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
-        fun markAsRead(notificationId: String) {
-            repo.markAsRead(userId, notificationId)
-        }
+    fun markAsRead(notificationId: String) {
+        repo.markAsRead(userId, notificationId)
     }
-
+}

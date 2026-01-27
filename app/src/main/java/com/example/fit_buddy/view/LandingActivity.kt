@@ -48,12 +48,18 @@ class LandingActivity : ComponentActivity() {
                 composable("landing") {
                     LandingScreen(navController, userViewModel)
                 }
+
                 composable("signin") {
                     LoginScreen(navController, userViewModel)
                 }
+
                 composable("signup") {
                     SignUpScreen(navController, userViewModel)
                 }
+                composable("forgot") {
+                    ForgetPasswordScreen(navController)
+                }
+
             }
         }
     }

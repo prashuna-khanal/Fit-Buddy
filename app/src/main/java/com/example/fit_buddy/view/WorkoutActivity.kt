@@ -46,12 +46,14 @@ import androidx.navigation.compose.rememberNavController
 import com.example.fit_buddy.view.AchievementScreen
 import com.example.fit_buddy.R
 import com.example.fit_buddy.model.FeaturedWorkout
+import com.example.fit_buddy.repository.NotificationRepoImpl
 import com.example.fit_buddy.repository.UserRepoImpl
 import com.example.fit_buddy.ui.theme.*
 import com.example.fit_buddy.viewmodel.FeedViewModel
 import com.example.fit_buddy.viewmodel.FeedViewModelFactory
 import com.example.fit_buddy.viewmodel.UserViewModel
 import com.example.fit_buddy.view.OtherUserProfileScreen
+import com.example.fit_buddy.viewmodel.NotificationViewModel
 import com.example.fitbuddy.repository.PoseRepo
 import com.example.fitbuddy.viewmodel.PoseViewModel
 
@@ -77,18 +79,32 @@ class WorkoutActivity : ComponentActivity() {
 data class NavItem(val icon: Int, val label: String)
 
 @Composable
-fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
+fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel
+) {
     val userProfile by userViewModel.user.observeAsState()
     val firstName = userProfile?.fullName?.split(" ")?.firstOrNull() ?: "Buddy"
     val userRepo = com.example.fit_buddy.repository.UserRepoImpl()
     var showRequestsScreen by remember { mutableStateOf(false) }
     var selectedProfileId by remember { mutableStateOf<String?>(null) }
+    var showNotificationScreen by remember { mutableStateOf(false) }
+
+
+    val userId = userViewModel.getCurrentUserId() ?: ""
+
+    val notificationViewModel = remember {
+        NotificationViewModel(
+            repo = com.example.fit_buddy.repository.NotificationRepoImpl(),
+            userId = userId
+        )
+    }
+
+
     val context = LocalContext.current
     val feedViewModel: FeedViewModel = viewModel(
         factory = FeedViewModelFactory(com.example.fit_buddy.repository.PostRepository(context), userRepo)
     )
 
-    var selectedIndex by remember { mutableStateOf(0) }
+    var selectedIndex by remember { mutableStateOf(0) } // 0=Workout, 1=Feed, 2=AI, 3=Achievement, 4=Profile, 5=Notification
     var cameraPermissionGranted by remember { mutableStateOf(false) }
     var showHistorySheet by remember { mutableStateOf(false) }
 
@@ -185,7 +201,11 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
                 .padding(padding)
         ) {
             when (selectedIndex) {
-                0 -> WorkoutHomeScreen(userViewModel=userViewModel, userName = firstName, onSeeAllClick = {showHistorySheet=true})
+                0 -> WorkoutHomeScreen(
+                    userViewModel = userViewModel,
+                    userName = firstName,
+                    onSeeAllClick = { showHistorySheet = true },
+                    onNotificationClick = { selectedIndex = 5 })
 
                 1 -> {
                     if (selectedProfileId != null) {
@@ -217,6 +237,7 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
                         )
                     }
                 }
+
                 2 -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         if (cameraPermissionGranted && viewModel != null) {
@@ -226,22 +247,40 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
                         }
                     }
                 }
+
                 3 -> AchievementScreen()
                 4 -> ProfileScreen(feedViewModel)
+                5 -> NotificationScreen(
+                    viewModel = notificationViewModel,
+                    onBack = {}
+
+                )
+            }
+            if (showHistorySheet) {
+                WorkoutHistorySheet(userViewModel) { showHistorySheet = false }
             }
         }
     }
 }
 
 @Composable
-fun WorkoutHomeScreen(userViewModel: UserViewModel, userName: String, onSeeAllClick: () -> Unit) {
+fun WorkoutHomeScreen(
+    userViewModel: UserViewModel,
+    userName: String,
+    onSeeAllClick: () -> Unit,
+    onNotificationClick: () -> Unit // Add this
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
             .verticalScroll(rememberScrollState())
     ) {
-        HeaderSection(userName = userName)
+        HeaderSection(
+            userName = userName,
+            onNotificationClick = onNotificationClick // Pass to header
+        )
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -257,10 +296,14 @@ fun WorkoutHomeScreen(userViewModel: UserViewModel, userName: String, onSeeAllCl
     }
 }
 
+
 @Composable
-fun HeaderSection(userName: String) {
+fun HeaderSection(
+    userName: String,
+    onNotificationClick: () -> Unit
+) {
     val greeting = getGreeting()
-    val subtitle = when(greeting){
+    val subtitle = when (greeting) {
         "Good Morning ☀️" -> "Time to kickstart your day!"
         "Good Afternoon 🌤️" -> "Keep the momentum going!"
         "Good Evening 🌅" -> "Ready to crush your goal today?"
@@ -286,11 +329,13 @@ fun HeaderSection(userName: String) {
                 Text(text = subtitle, color = textSecondary, fontSize = 16.sp)
             }
 
+            // 🔔 Notification Icon
             Box(
                 modifier = Modifier
                     .size(42.dp)
                     .clip(CircleShape)
-                    .background(buttonLightGray),
+                    .background(buttonLightGray)
+                    .clickable { onNotificationClick() }, // triggers navigation
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -303,23 +348,20 @@ fun HeaderSection(userName: String) {
 
         Spacer(Modifier.height(20.dp))
 
+        // Stat Cards
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            StatCard("Calories", "420", R.drawable.icon_park_solid_fire,
-                Brush.verticalGradient(listOf(rose50, rose100)))
-
-            StatCard("Workouts", "2", R.drawable.heart,
-                Brush.verticalGradient(listOf(lavender50, lavender100)))
-
-            StatCard("Goal", "85%", R.drawable.octicon_goal_16,
-                Brush.verticalGradient(listOf(mint50, mint100)))
+            StatCard("Calories", "420", R.drawable.icon_park_solid_fire, Brush.verticalGradient(listOf(rose50, rose100)))
+            StatCard("Workouts", "2", R.drawable.heart, Brush.verticalGradient(listOf(lavender50, lavender100)))
+            StatCard("Goal", "85%", R.drawable.octicon_goal_16, Brush.verticalGradient(listOf(mint50, mint100)))
         }
     }
 }
+
 
 private fun getGreeting(): String {
     val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
@@ -541,7 +583,7 @@ fun WorkoutCard(
     calories: String,
     image: Int,
 
-) {
+    ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
