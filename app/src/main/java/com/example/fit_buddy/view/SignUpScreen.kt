@@ -373,17 +373,14 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
 
                             viewModel.addUserToDatabase(userId, userModel) { dbSuccess, _ ->
                                 if (dbSuccess) {
-                                    // Save user session
                                     UserSession.currentUserId = userId
                                     UserSession.currentUserName = fullName.trim()
 
-                                    // Send welcome notification
                                     NotificationUtils.sendWelcomeNotification(
                                         userId = userId,
                                         fullName = fullName
                                     )
 
-                                    // Schedule daily reminder
                                     scheduleDailyReminder(context)
 
                                     FirebaseAuth.getInstance().signOut()
