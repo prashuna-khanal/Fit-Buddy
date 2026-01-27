@@ -45,7 +45,7 @@ fun ProfileScreen(viewModel: FeedViewModel,userViewModel: UserViewModel = viewMo
                 onBack = { selectedIndex = 0 },
                 onFriendClick = { friendId ->
                     // Navigate to friend's profile if you have that screen
-                   // println("Clicked on friend: $friendId")
+                    // println("Clicked on friend: $friendId")
                 }
             )//
 //            3 -> PrivacySecurityScreenComposable (onBackClick = { selectedIndex = 0 })
@@ -184,4 +184,3 @@ fun LogoutItem(onClick: () -> Unit) {
         )
     }
 }
-
