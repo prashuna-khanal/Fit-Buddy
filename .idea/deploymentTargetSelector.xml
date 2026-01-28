@@ -7,6 +7,7 @@
       </SelectionState>
       <SelectionState runConfigName="SplashActivity">
         <option name="selectionMode" value="DROPDOWN" />
+<<<<<<< HEAD
         <DropdownSelection timestamp="2026-01-28T12:47:36.266006100Z">
           <Target type="DEFAULT_BOOT">
             <handle>
@@ -15,6 +16,8 @@
           </Target>
         </DropdownSelection>
         <DialogSelection />
+=======
+>>>>>>> 7b14035978c66fe088260f2198d8d2c965e58f1b
       </SelectionState>
     </selectionStates>
   </component>

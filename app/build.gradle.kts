@@ -51,7 +51,11 @@ dependencies {
 //    for data storing cloudinary
 
     implementation("com.cloudinary:cloudinary-android:2.1.0")
+
+
+    implementation(libs.androidx.ui)
     implementation(libs.core.ktx)
+
     val bom = platform("com.google.firebase:firebase-bom:34.7.0")
     implementation(bom)
 
