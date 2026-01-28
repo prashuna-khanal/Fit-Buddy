@@ -16,6 +16,7 @@ googleGmsGoogleServices = "4.4.4"
 firebaseDatabase = "21.0.0" # or latest
 firebaseAuth = "23.1.0"
 runtimeLivedata = "1.10.0"
+ui = "1.10.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -41,6 +42,7 @@ firebase-database = { group = "com.google.firebase", name = "firebase-database",
 
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
 androidx-compose-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
 
 
 
