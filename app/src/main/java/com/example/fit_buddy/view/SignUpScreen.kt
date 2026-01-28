@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -113,7 +114,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
             OutlinedTextField(
                 value = fullName,
                 onValueChange = { fullName = it },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("fullName"),
                 placeholder = { Text("Full Name") },
                 shape = RoundedCornerShape(12.dp),
                 leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = primaryPurple) }
@@ -125,7 +126,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("email"),
                 placeholder = { Text("demo@email.com") },
                 shape = RoundedCornerShape(12.dp),
                 leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = primaryPurple) }
@@ -137,7 +138,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("password"),
                 shape = RoundedCornerShape(12.dp),
                 visualTransformation = if (passVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
@@ -402,7 +403,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
+                    .height(56.dp).testTag("signup")
                     .align(Alignment.CenterHorizontally),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(buttonLavender)

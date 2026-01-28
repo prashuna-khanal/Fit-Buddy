@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -91,7 +92,7 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("email"),
                 placeholder = { Text("demo@email.com") },
                 leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = Color(0xFF6200EE)) },
                 colors = OutlinedTextFieldDefaults.colors(
@@ -107,7 +108,7 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth() .testTag("password"),
                 placeholder = { Text("enter your password") },
                 leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = Color(0xFF6200EE)) },
                 visualTransformation = PasswordVisualTransformation(),
@@ -157,7 +158,7 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
                         }
                     }
                 },
-                modifier = Modifier.fillMaxWidth().height(55.dp),
+                modifier = Modifier.fillMaxWidth().height(55.dp).testTag("login"),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB19CD9))
             ) {
