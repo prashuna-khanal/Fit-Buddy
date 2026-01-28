@@ -92,7 +92,7 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                modifier = Modifier.fillMaxWidth().testTag("email"),
+                modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("demo@email.com") },
                 leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = Color(0xFF6200EE)) },
                 colors = OutlinedTextFieldDefaults.colors(
@@ -108,7 +108,7 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                modifier = Modifier.fillMaxWidth() .testTag("password"),
+                modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("enter your password") },
                 leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = Color(0xFF6200EE)) },
                 visualTransformation = PasswordVisualTransformation(),
