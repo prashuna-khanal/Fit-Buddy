@@ -15,6 +15,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -27,113 +29,108 @@ import androidx.navigation.NavController
 import com.example.fit_buddy.viewmodel.UserViewModel
 import com.example.fit_buddy.R
 
-
 @Composable
 fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
-    //  user input
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    val context = LocalContext.current
-    //   back
-    var isBackPressed by remember { mutableStateOf(false) }
+    var passVisible by remember { mutableStateOf(false) }
+    var rememberMe by remember { mutableStateOf(false) }
 
+    val context = LocalContext.current
     val primaryPurple = Color(0xFF6200EE)
+
+    val gradientBackground = Brush.verticalGradient(
+        colors = listOf(
+            Color(0xFFEEE6FF),
+            Color(0xFFD7C9FF),
+            Color(0xFFC3B6F5)
+        )
+    )
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(gradientBackground)
     ) {
-//        wavy
+
+        // 🌊 Top wave header
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.35f)
+                .fillMaxHeight(0.32f)
                 .background(
-                    color = Color(0xFFC9B6E4),
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFFC3B6F5),
+                            Color(0xFFD7C9FF)
+                        )
+                    ),
                     shape = RoundedCornerShape(bottomStart = 80.dp, bottomEnd = 80.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            IconButton(onClick = {isBackPressed= true
-                navController.popBackStack()
-            },
-                modifier = Modifier.align(Alignment.TopStart)
-                    .padding(top = 40.dp, start = 16.dp)
-                    .background(
-                        if (isBackPressed) Color(0xFFB19CD9) else Color.Transparent,
-                        shape = CircleShape
-                    )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription =null,
-                    tint = Color.White
                 )
+        ) {
+            IconButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier
+                    .padding(40.dp)
+                    .background(Color(0xFF6200EE), CircleShape)
+            ) {
+                Icon(Icons.Default.ArrowBack, null, tint = Color.White)
             }
-//           if we want logo guys
-
         }
 
-        // form fields
+        // 📦 Login Card
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(30.dp)
+                .padding(24.dp)
+                .shadow(12.dp, RoundedCornerShape(24.dp))
+                .background(Color.White, RoundedCornerShape(24.dp))
+                .padding(24.dp)
         ) {
 
             Text(
                 text = "Sign in",
                 fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
+                fontWeight = FontWeight.Bold
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(Modifier.height(24.dp))
 
-            // email field
+            // 📧 Email
             Text("Email", color = Color.Gray, fontSize = 14.sp)
+
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("demo@email.com") },
-                leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = Color(0xFF6200EE)) },
+                leadingIcon = {
+                    Icon(Icons.Default.Email, null, tint = primaryPurple)
+                },
                 colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = Color.LightGray,
-                    focusedBorderColor = Color(0xFF6200EE)
+                    focusedBorderColor = primaryPurple,
+                    unfocusedBorderColor = Color.LightGray
                 )
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(16.dp))
 
-            //password field
-            var password by remember { mutableStateOf("") }
-            var passVisible by remember { mutableStateOf(false) }
-
-            CustomLabel("Password")
+            // 🔐 Password
+            Text("Password", color = Color.Gray, fontSize = 14.sp)
 
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-
                 placeholder = { Text("Enter your password") },
-
                 leadingIcon = {
-                    Icon(
-                        Icons.Default.Lock,
-                        contentDescription = null,
-                        tint = Color(0xFF6200EE)
-                    )
+                    Icon(Icons.Default.Lock, null, tint = primaryPurple)
                 },
-
                 visualTransformation = if (passVisible)
                     VisualTransformation.None
                 else
                     PasswordVisualTransformation(),
-
                 trailingIcon = {
                     IconButton(onClick = { passVisible = !passVisible }) {
                         Icon(
@@ -147,79 +144,80 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
                             tint = primaryPurple
                         )
                     }
-                }
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = primaryPurple,
+                    unfocusedBorderColor = Color.LightGray
+                )
             )
 
+            Spacer(Modifier.height(12.dp))
 
-
-
-            var rememberMe by remember { mutableStateOf(false) }
-
+            // ☑ Remember + Forgot
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-
                     Checkbox(
                         checked = rememberMe,
                         onCheckedChange = { rememberMe = it }
                     )
-
                     Text("Remember Me", fontSize = 12.sp)
                 }
+
                 Text(
-                    text = "Forgot Password?",
+                    "Forgot Password?",
+                    color = primaryPurple,
                     fontSize = 12.sp,
-                    color = Color(0xFF6200EE),
                     modifier = Modifier.clickable {
                         navController.navigate("forgot")
                     }
                 )
             }
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(Modifier.height(24.dp))
 
-            // button
+            // 🚀 Login Button
             Button(
                 onClick = {
-                    // calls the ViewModel function we built earlier
                     viewModel.login(email, password) { success, message ->
                         if (success) {
                             Toast.makeText(context, "Welcome back!", Toast.LENGTH_SHORT).show()
-//                            starting activity
-                            val intent = Intent(context, WorkoutActivity::class.java)
-                            context.startActivity(intent)
-//                            close login
+                            context.startActivity(
+                                Intent(context, WorkoutActivity::class.java)
+                            )
                             (context as? android.app.Activity)?.finish()
-                            // navigate to dashboard and clear back screens
-
                         } else {
                             Toast.makeText(context, message, Toast.LENGTH_LONG).show()
                         }
                     }
                 },
-                modifier = Modifier.fillMaxWidth().height(55.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB19CD9))
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(18.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = primaryPurple)
             ) {
                 Text("Login", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
 
-            // if no acc we will go to singup
+            Spacer(Modifier.height(18.dp))
+
+            // ➕ Signup
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text("Don't have an Account? ", color = Color.Gray)
+                Text("Don't have an account? ", color = Color.Gray)
                 Text(
-                    text = "Sign up",
-                    color = Color(0xFF6200EE),
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { navController.navigate("signup") }
+                    "Sign up",
+                    color = primaryPurple,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.clickable {
+                        navController.navigate("signup")
+                    }
                 )
             }
         }
