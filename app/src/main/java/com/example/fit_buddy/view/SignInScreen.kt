@@ -107,6 +107,7 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            //password field
             var password by remember { mutableStateOf("") }
             var passVisible by remember { mutableStateOf(false) }
 
