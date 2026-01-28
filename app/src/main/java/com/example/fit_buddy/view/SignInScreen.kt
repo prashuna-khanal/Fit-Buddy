@@ -17,11 +17,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.fit_buddy.R
 import com.example.fit_buddy.viewmodel.UserViewModel
 
 @Composable
@@ -103,15 +106,7 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
             Spacer(modifier = Modifier.height(16.dp))
 
             // password field
-            Text("Password", color = Color.Gray, fontSize = 14.sp)
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("enter your password") },
-                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = Color(0xFF6200EE)) },
-                visualTransformation = PasswordVisualTransformation(),
-                var password by remember { mutableStateOf("") }
+            var password by remember { mutableStateOf("") }
             var passVisible by remember { mutableStateOf(false) }
 
             CustomLabel("Password")
@@ -141,12 +136,6 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
                         )
                     }
                 }
-            )
-
-            colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = Color.LightGray,
-                    focusedBorderColor = Color(0xFF6200EE)
-                )
             )
 
             Row(
