@@ -119,12 +119,19 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
             var rememberMe by remember { mutableStateOf(false) }
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(checked = true, onCheckedChange = {})
+
+                    Checkbox(
+                        checked = rememberMe,
+                        onCheckedChange = { rememberMe = it }
+                    )
+
                     Text("Remember Me", fontSize = 12.sp)
                 }
                 Text(
