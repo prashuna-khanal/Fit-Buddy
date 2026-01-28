@@ -1,5 +1,6 @@
 package com.example.fit_buddy.view
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,6 +17,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.fit_buddy.R
 import com.example.fit_buddy.ui.theme.*
@@ -25,9 +29,13 @@ fun AppSettingsScreenComposable(
     onBackClick: () -> Unit = {}
 ) {
     var notificationsEnabled by remember { mutableStateOf(true) }
-    // var darkModeEnabled by remember { mutableStateOf(false) }
-    var metricUnitsEnabled by remember { mutableStateOf(true) }
     var analyticsEnabled by remember { mutableStateOf(true) }
+
+    // For popup dialog
+    var showAnalyticsDialog by remember { mutableStateOf(false) }
+    var analyticsMessage by remember { mutableStateOf("") }
+
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -73,32 +81,50 @@ fun AppSettingsScreenComposable(
         SettingsItemSwitch(
             icon = R.drawable.baseline_notifications_24,
             title = "Enable Notifications",
-            description = "Receive reminders for workouts, water intake, and activity goals.",
+            description = "Receive reminders for workouts and activity goals.",
             checked = notificationsEnabled,
-            onCheckedChange = { notificationsEnabled = it }
+            onCheckedChange = { notificationsEnabled = it
+                val msg = if (it) "Notifications Enabled" else "Notifications Disabled"
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()}
         )
 
         // SettingsItemSwitch( ... dark mode ... )  ← still commented out
 
-        SettingsItemSwitch(
-            icon = R.drawable.baseline_straighten_24,
-            title = "Use Metric Units",
-            description = "Display weight in kg and distance in kilometers.",
-            checked = metricUnitsEnabled,
-            onCheckedChange = { metricUnitsEnabled = it }
-        )
+//        SettingsItemSwitch(
+//            icon = R.drawable.baseline_straighten_24,
+//            title = "Use Metric Units",
+//            description = "Display weight in kg and distance in kilometers.",
+//            checked = metricUnitsEnabled,
+//            onCheckedChange = { metricUnitsEnabled = it }
+//        )
 
         SettingsItemSwitch(
             icon = R.drawable.baseline_privacy_tip_24,
             title = "Allow Analytics",
             description = "Help us improve Fit Buddy by sharing anonymous usage data.",
             checked = analyticsEnabled,
-            onCheckedChange = { analyticsEnabled = it }
+            onCheckedChange = { analyticsEnabled = it
+                analyticsMessage = if (it) "You have allowed data sharing."
+                else "You have disabled data sharing."
+                showAnalyticsDialog = true}
         )
 
         Spacer(modifier = Modifier.height(10.dp))
     }
+    if (showAnalyticsDialog) {
+        AlertDialog(
+            onDismissRequest = { showAnalyticsDialog = false },
+            title = { Text("Analytics Preference") },
+            text = { Text(analyticsMessage) },
+            confirmButton = {
+                Button(onClick = { showAnalyticsDialog = false }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
 }
+
 
 @Composable
 fun SettingsItemSwitch(
@@ -152,8 +178,8 @@ fun SettingsItemSwitch(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun AppSettingsScreenPreview() {
-    AppSettingsScreenComposable()
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun AppSettingsScreenPreview() {
+//    AppSettingsScreenComposable()
+//}

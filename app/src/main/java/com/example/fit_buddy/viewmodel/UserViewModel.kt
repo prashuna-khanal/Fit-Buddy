@@ -104,7 +104,16 @@ class UserViewModel(
         repository.getUserData(userId)
 
     fun updateUserProfile(userId: String, userModel: UserModel, callback: (Boolean, String) -> Unit) {
-        repository.updateUserProfile(userId, userModel, callback)
+        _loading.value=true
+        repository.updateUserProfile(userId, userModel){
+            success, message ->
+            _loading.value=false
+            if(success){
+                loadCurrentUser() //refresh
+
+            }
+            callback(success,message)
+        }
     }
 
     fun uploadProfileImage(
@@ -112,7 +121,42 @@ class UserViewModel(
         callback: (Boolean, String) -> Unit
     ) {
         val userId = getCurrentUserId() ?: return
-        repository.uploadProfileImage(userId, imageUri, callback)
+        _loading.value = true
+        repository.uploadProfileImage(userId, imageUri){
+            success, message ->
+            _loading.value=false
+            if(success){
+                loadCurrentUser()
+                callback(true,"Profile picture updated successfully!")
+            }else{
+                _error.value=message
+                callback(false,message)
+            }
+        }
+    }
+    fun updateProfileWithCloudinary(cloudinaryUrl: String) {
+        val userId = getCurrentUserId() ?: return
+        _loading.value = true
+        repository.updateProfileImageLink(userId, cloudinaryUrl) { success, message ->
+            _loading.value = false
+            if (success) {
+                loadCurrentUser()
+            } else {
+                _error.value = message
+            }
+        }
+    }
+    fun updateProfileWithUrl(imageUrl: String, callback: (Boolean, String) -> Unit) {
+        val userId = getCurrentUserId() ?: return
+        _loading.value = true
+
+        repository.updateProfileImageLink(userId, imageUrl) { success, msg ->
+            _loading.value = false
+            if (success) {
+                loadCurrentUser() // Refresh the local user data
+            }
+            callback(success, msg)
+        }
     }
 
     fun deleteAccount(

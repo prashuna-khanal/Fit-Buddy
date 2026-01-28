@@ -24,13 +24,14 @@ import com.example.fit_buddy.utils.NotificationUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FriendRequestsScreen(
-    requests: List<FriendRequest>,
-    onAccept: (String) -> Unit,
-    onDelete: (String) -> Unit,
-    onProfileClick: (String) -> Unit,
-    onBack: () -> Unit
-) {
+fun FriendRequestsScreen(requests: List<com.example.fit_buddy.model.FriendRequest>,
+                         allUsers: List<com.example.fit_buddy.model.UserModel>,
+                         onAccept:(String) -> Unit,
+
+                         onDelete:(String) -> Unit,
+                         onProfileClick:(String) -> Unit,
+                         onBack:() -> Unit
+){
     val confirmLavender = Color(0xFFD9C8F9)
 
     Scaffold(
@@ -51,15 +52,17 @@ fun FriendRequestsScreen(
             }
         } else {
             LazyColumn(modifier = Modifier.padding(padding).fillMaxSize()) {
-                items(requests) { request ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                items(requests, key = {it.userId}){
+                    request ->
+                    val liveUser = allUsers.find { it.userId == request.userId }
+                    val displayPic = liveUser?.profileImage ?: request.profilePicUrl
+                    val displayName = liveUser?.fullName ?: request.username
+                    Row (
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         AsyncImage(
-                            model = request.profilePicUrl,
+                            model = displayPic.ifEmpty { R.drawable.baseline_person_24 },
                             contentDescription = null,
                             modifier = Modifier
                                 .size(50.dp)
@@ -69,7 +72,8 @@ fun FriendRequestsScreen(
                         )
                         Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
                             Text(
-                                text = request.username.ifEmpty { "Unknown User" },
+                                text = displayName.ifEmpty { "Unkown User" },
+//                                modifier = Modifier.weight(1f).padding(start = 12.dp),
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 16.sp,
                                 color = Color.Black,

@@ -96,7 +96,7 @@ fun LandingScreen(navController: NavController, viewModel: UserViewModel) {
             }
         }
     }
-}
+
 
 @Composable
 fun WhyChooseFitBuddySlider() {
