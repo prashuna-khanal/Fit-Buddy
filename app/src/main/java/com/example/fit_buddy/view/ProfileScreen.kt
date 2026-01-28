@@ -1,5 +1,7 @@
 package com.example.fit_buddy.view
 
+import android.app.Activity
+import android.content.Intent
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,6 +26,7 @@ import com.example.fit_buddy.R
 import com.example.fit_buddy.ui.theme.backgroundLightLavender
 import com.example.fit_buddy.viewmodel.FeedViewModel
 import com.example.fit_buddy.viewmodel.UserViewModel
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun ProfileScreen(viewModel: FeedViewModel,userViewModel: UserViewModel = viewModel()) {
@@ -45,7 +48,7 @@ fun ProfileScreen(viewModel: FeedViewModel,userViewModel: UserViewModel = viewMo
                 onBack = { selectedIndex = 0 },
                 onFriendClick = { friendId ->
                     // Navigate to friend's profile if you have that screen
-                   // println("Clicked on friend: $friendId")
+                    // println("Clicked on friend: $friendId")
                 }
             )//
 //            3 -> PrivacySecurityScreenComposable (onBackClick = { selectedIndex = 0 })
@@ -61,6 +64,7 @@ fun ProfileMainScreen(
     onNavigate: (Int) -> Unit
 ) {
     val user by userViewModel.user.observeAsState()
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -111,17 +115,33 @@ fun ProfileMainScreen(
 
         ProfileItem(R.drawable.baseline_person_24, "Edit Profile") { onNavigate(1) }
         ProfileItem(R.drawable.baseline_people_24, "Friends") { onNavigate(2) }
-        ProfileItem(R.drawable.baseline_security_24, "Privacy & Security") { onNavigate(3) }
+//        ProfileItem(R.drawable.baseline_security_24, "Privacy & Security") { onNavigate(3) }
         ProfileItem(R.drawable.baseline_settings_24, "App Settings") { onNavigate(4) }
         ProfileItem(R.drawable.baseline_help_24, "Help & Support") { onNavigate(5) }
 
         Spacer(Modifier.height(20.dp))
 
         LogoutItem {
-            // logout logic
+//             logout logic
+            // Sign out from Firebase
+            FirebaseAuth.getInstance().signOut()
+
+            // Navigate back to SplashActivity or LoginActivity
+            val intent = Intent(context, SplashActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+            context.startActivity(intent)
+
+            // Finish current activity if possible
+            (context as? Activity)?.finish()
+//
+//
+
         }
     }
 }
+
+
 
 @Composable
 fun ProfileItem(
@@ -184,4 +204,3 @@ fun LogoutItem(onClick: () -> Unit) {
         )
     }
 }
-

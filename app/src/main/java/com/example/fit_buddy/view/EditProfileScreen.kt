@@ -40,6 +40,7 @@ import com.example.fit_buddy.R
 import com.example.fit_buddy.model.UserModel
 import com.example.fit_buddy.ui.theme.lavender400
 import com.example.fit_buddy.viewmodel.UserViewModel
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun EditProfileScreenComposable(
@@ -55,7 +56,7 @@ fun EditProfileScreenComposable(
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var weight by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("*********") }
+    var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
 //    val user by viewModel
@@ -68,6 +69,7 @@ fun EditProfileScreenComposable(
             email = it.email
             weight = it.weight
         }
+
     }
 //    val context = LocalContext.current
 
@@ -265,19 +267,44 @@ fun EditProfileScreenComposable(
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        // UPDATE BUTTON
+
         Button(
             onClick = {
-                if (userId == null) return@Button
+                if (userId == null || user == null) return@Button
 
-                val updatedUser = user?.copy(
-                    fullName = name,
-                    email = email,
-                    weight = weight
-                ) ?: UserModel(userId, name, email, weight)
+                val hasProfileChanged =
+                    name != user!!.fullName ||
+                            email != user!!.email ||
+                            weight != user!!.weight
 
-                viewModel.updateUserProfile(userId, updatedUser) { success, msg ->
-                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                val hasPasswordChanged = password.isNotBlank()
+
+                // Nothing changed
+                if (!hasProfileChanged && !hasPasswordChanged) {
+                    Toast.makeText(context, "Nothing to update", Toast.LENGTH_SHORT).show()
+                    return@Button
+                }
+
+                // 🔹 Update profile (name/email/weight) if changed
+                if (hasProfileChanged) {
+                    val updatedUser = user!!.copy(
+                        fullName = name,
+                        email = email,
+                        weight = weight
+                    )
+
+                    viewModel.updateUserProfile(userId, updatedUser) { success, msg ->
+                        if (!success) {
+                            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                            return@updateUserProfile
+                        }
+
+                        // Password may or may not change
+                        updatePasswordIfNeeded(context, hasPasswordChanged, password)
+                    }
+                } else {
+                    //  Only password changed
+                    updatePasswordIfNeeded(context, hasPasswordChanged, password)
                 }
             },
             modifier = Modifier
@@ -289,6 +316,8 @@ fun EditProfileScreenComposable(
         ) {
             Text("Update Profile", color = Color.White, fontSize = 16.sp)
         }
+
+
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -330,7 +359,7 @@ fun EditProfileScreenComposable(
                         viewModel.deleteAccount(userId) { success, msg ->
                             if (success) {
                                 viewModel.logout()
-                                // 👉 navigate to Login screen here
+                                // navigate to Login screen here
                             }
                         }
                     }
@@ -346,6 +375,27 @@ fun EditProfileScreenComposable(
         )
     }
 }
+fun updatePasswordIfNeeded(
+    context: android.content.Context,
+    hasPasswordChanged: Boolean,
+    password: String
+) {
+    if (hasPasswordChanged) {
+        FirebaseAuth.getInstance().currentUser
+            ?.updatePassword(password)
+            ?.addOnCompleteListener { task ->
+                Toast.makeText(
+                    context,
+                    if (task.isSuccessful) "Updated successfully"
+                    else task.exception?.message ?: "Update failed",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+    } else {
+        Toast.makeText(context, "Updated successfully", Toast.LENGTH_SHORT).show()
+    }
+}
+
 
 @Composable
 fun ProfileInputField(
