@@ -57,7 +57,7 @@ class PasswordResetUnitTest {
 
         // Assertions
         assertTrue(success)
-        assertEquals("Reset email", message)
+        assertEquals("Reset email sent", message)
 
         // Verify repository method was called
         verify(repo).sendPasswordResetEmail(eq("test@gmail.com"), any())
