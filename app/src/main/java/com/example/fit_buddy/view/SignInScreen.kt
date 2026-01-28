@@ -35,6 +35,7 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
     val context = LocalContext.current
     //   back
     var isBackPressed by remember { mutableStateOf(false) }
+    val primaryPurple = Color(0xFF6200EE)
 
 
     Column(
