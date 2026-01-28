@@ -107,7 +107,6 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // password field
             var password by remember { mutableStateOf("") }
             var passVisible by remember { mutableStateOf(false) }
 
@@ -118,6 +117,8 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
                 onValueChange = { password = it },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
+
+                placeholder = { Text("Enter your password") },
 
                 visualTransformation = if (passVisible)
                     VisualTransformation.None
@@ -133,7 +134,7 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
                                 else
                                     R.drawable.outline_visibility_off_24
                             ),
-                            contentDescription = "Toggle password",
+                            contentDescription = null,
                             tint = primaryPurple
                         )
                     }
