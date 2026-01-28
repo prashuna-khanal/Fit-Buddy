@@ -13,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -37,7 +38,7 @@ import com.example.fit_buddy.utils.NotificationUtils
 fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
     val context = LocalContext.current
 
-    // Input state variables
+    // Input states
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -45,30 +46,32 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
     var dob by remember { mutableStateOf("Select Date of Birth") }
     var weight by remember { mutableStateOf("70") }
     var gender by remember { mutableStateOf("Male") }
-    var height by remember { mutableStateOf("") }           // ← NEW
+    var height by remember { mutableStateOf("") }
     var isTermsAccepted by remember { mutableStateOf(false) }
     var isBackPressed by remember { mutableStateOf(false) }
 
-    // Height validation state
     var heightError by remember { mutableStateOf<String?>(null) }
-
-    // UI variables
     var passVisible by remember { mutableStateOf(false) }
     var confirmPassVisible by remember { mutableStateOf(false) }
     var isWeightMenuExpanded by remember { mutableStateOf(false) }
 
+    // Theme Colors
     val softLavender = Color(0xFFC9B6E4)
     val lightLavenderBg = Color(0xFFF8F4FF)
     val buttonLavender = Color(0xFFB19CD9)
     val primaryPurple = Color(0xFF6200EE)
+    val backgroundGradient = Brush.verticalGradient(
+        colors = listOf(Color(0xFFEEE6FF), Color(0xFFD7C9FF), Color(0xFFC3B6F5))
+    )
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(backgroundGradient)
             .verticalScroll(rememberScrollState())
     ) {
 
+        // Top wavy header
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -107,6 +110,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
             )
         }
 
+        // Form fields
         Column(modifier = Modifier.padding(24.dp)) {
 
             CustomLabel("Full Name")
@@ -116,7 +120,11 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("Full Name") },
                 shape = RoundedCornerShape(12.dp),
-                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = primaryPurple) }
+                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = primaryPurple) },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = primaryPurple,
+                    unfocusedBorderColor = Color.LightGray
+                )
             )
 
             Spacer(Modifier.height(12.dp))
@@ -128,7 +136,11 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("demo@email.com") },
                 shape = RoundedCornerShape(12.dp),
-                leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = primaryPurple) }
+                leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = primaryPurple) },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = primaryPurple,
+                    unfocusedBorderColor = Color.LightGray
+                )
             )
 
             Spacer(Modifier.height(12.dp))
@@ -143,13 +155,19 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
                 trailingIcon = {
                     IconButton(onClick = { passVisible = !passVisible }) {
                         Icon(
-                            painter = if (passVisible) painterResource(R.drawable.baseline_visibility_24)
-                            else painterResource(R.drawable.outline_visibility_off_24),
+                            painter = painterResource(
+                                if (passVisible) R.drawable.baseline_visibility_24
+                                else R.drawable.outline_visibility_off_24
+                            ),
                             contentDescription = null,
                             tint = primaryPurple
                         )
                     }
-                }
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = primaryPurple,
+                    unfocusedBorderColor = Color.LightGray
+                )
             )
 
             Spacer(Modifier.height(12.dp))
@@ -164,24 +182,29 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
                 trailingIcon = {
                     IconButton(onClick = { confirmPassVisible = !confirmPassVisible }) {
                         Icon(
-                            painter = if (confirmPassVisible) painterResource(R.drawable.baseline_visibility_24)
-                            else painterResource(R.drawable.outline_visibility_off_24),
+                            painter = painterResource(
+                                if (confirmPassVisible) R.drawable.baseline_visibility_24
+                                else R.drawable.outline_visibility_off_24
+                            ),
                             contentDescription = null,
                             tint = primaryPurple
                         )
                     }
-                }
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = primaryPurple,
+                    unfocusedBorderColor = Color.LightGray
+                )
             )
 
             Spacer(Modifier.height(16.dp))
 
+            // Date of Birth
             CustomLabel("Date of Birth")
             val calendar = Calendar.getInstance()
             val datePickerDialog = DatePickerDialog(
                 context,
-                { _, year, month, day ->
-                    dob = "$day/${month + 1}/$year"
-                },
+                { _, year, month, day -> dob = "$day/${month + 1}/$year" },
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH)
@@ -199,15 +222,13 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
                 ) {
                     Icon(Icons.Default.DateRange, contentDescription = null, tint = primaryPurple)
                     Spacer(Modifier.width(12.dp))
-                    Text(
-                        text = dob,
-                        color = if (dob.contains("Select")) Color.Gray else Color.Black
-                    )
+                    Text(text = dob, color = if (dob.contains("Select")) Color.Gray else Color.Black)
                 }
             }
 
             Spacer(Modifier.height(16.dp))
 
+            // Gender
             CustomLabel("Gender")
             Row(verticalAlignment = Alignment.CenterVertically) {
                 RadioButton(
@@ -216,7 +237,6 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
                     colors = RadioButtonDefaults.colors(primaryPurple)
                 )
                 Text("Male", modifier = Modifier.padding(end = 16.dp))
-
                 RadioButton(
                     selected = gender == "Female",
                     onClick = { gender = "Female" },
@@ -227,6 +247,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
 
             Spacer(Modifier.height(16.dp))
 
+            // Weight
             CustomLabel("Weight (kg)")
             Box {
                 OutlinedCard(
@@ -265,57 +286,37 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
 
             Spacer(Modifier.height(16.dp))
 
-            // ────────────────────── HEIGHT FIELD (METERS) ──────────────────────
+            // Height
             CustomLabel("Height (m)")
             OutlinedTextField(
                 value = height,
                 onValueChange = { newValue ->
-
-                    // Allow digits + ONE decimal point
-                    val filtered = newValue
-                        .filter { it.isDigit() || it == '.' }
-                        .let {
-                            if (it.count { c -> c == '.' } > 1) it.dropLast(1) else it
-                        }
-
-                    height = filtered.take(4) // e.g. 1.75
-
+                    val filtered = newValue.filter { it.isDigit() || it == '.' }.let {
+                        if (it.count { c -> c == '.' } > 1) it.dropLast(1) else it
+                    }
+                    height = filtered.take(4)
                     val heightValue = filtered.toFloatOrNull()
-
                     heightError = when {
-                        filtered.isEmpty() ->
-                            "Height is required"
-
-                        heightValue == null ->
-                            "Enter a valid number"
-
-                        heightValue < 1.0f ->
-                            "Height too low (min 1.0 m)"
-
-                        heightValue > 2.5f ->
-                            "Height too high (max 2.5 m)"
-
+                        filtered.isEmpty() -> "Height is required"
+                        heightValue == null -> "Enter a valid number"
+                        heightValue < 1.0f -> "Height too low (min 1.0 m)"
+                        heightValue > 2.5f -> "Height too high (max 2.5 m)"
                         else -> null
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Decimal
-                ),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 singleLine = true,
                 isError = heightError != null,
                 supportingText = {
-                    heightError?.let {
-                        Text(
-                            text = it,
-                            color = MaterialTheme.colorScheme.error,
-                            fontSize = 12.sp
-                        )
-                    }
-                }
+                    heightError?.let { Text(text = it, color = MaterialTheme.colorScheme.error, fontSize = 12.sp) }
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = primaryPurple,
+                    unfocusedBorderColor = Color.LightGray
+                )
             )
-
 
             Spacer(Modifier.height(20.dp))
 
@@ -332,78 +333,45 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
 
             Button(
                 onClick = {
-
                     val heightValue = height.toFloatOrNull()
                     if (heightValue == null || heightValue < 1.0f || heightValue > 2.5f) {
-                        Toast.makeText(
-                            context,
-                            "Please enter valid height (1.0 – 2.5 m)",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(context, "Please enter valid height (1.0 – 2.5 m)", Toast.LENGTH_SHORT).show()
                         return@Button
                     }
-
-
                     if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                         Toast.makeText(context, "Please enter a valid email", Toast.LENGTH_SHORT).show()
                         return@Button
                     }
-
                     if (password != confirmPassword) {
                         Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
                         return@Button
                     }
-
                     if (!isTermsAccepted) {
                         Toast.makeText(context, "Please accept the terms", Toast.LENGTH_SHORT).show()
                         return@Button
                     }
 
+                    // Register user
                     viewModel.register(email, password) { success, message, userId ->
                         if (success) {
-                            val userModel = UserModel(
-                                userId = userId,
-                                fullName = fullName,
-                                email = email,
-                                dob = dob,
-                                gender = gender,
-                                weight = weight,
-                                height = height
-                            )
-
+                            val userModel = UserModel(userId = userId, fullName = fullName, email = email, dob = dob, gender = gender, weight = weight, height = height)
                             viewModel.addUserToDatabase(userId, userModel) { dbSuccess, _ ->
                                 if (dbSuccess) {
                                     UserSession.currentUserId = userId
                                     UserSession.currentUserName = fullName.trim()
-
-                                    NotificationUtils.sendWelcomeNotification(
-                                        userId = userId,
-                                        fullName = fullName
-                                    )
-
+                                    NotificationUtils.sendWelcomeNotification(userId = userId, fullName = fullName)
                                     scheduleDailyReminder(context)
-
                                     FirebaseAuth.getInstance().signOut()
-
-                                    Toast.makeText(
-                                        context,
-                                        "Account created! Please sign in.",
-                                        Toast.LENGTH_LONG
-                                    ).show()
-
-                                    navController.navigate("signin") {
-                                        popUpTo("signup") { inclusive = true }
-                                    }
+                                    Toast.makeText(context, "Account created! Please sign in.", Toast.LENGTH_LONG).show()
+                                    navController.navigate("signin") { popUpTo("signup") { inclusive = true } }
                                 }
                             }
                         }
                     }
-
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
-                    .align(Alignment.CenterHorizontally),
+                    .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(buttonLavender)
             ) {
@@ -412,8 +380,6 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
 
             Spacer(Modifier.height(40.dp))
         }
-
-
     }
 }
 
