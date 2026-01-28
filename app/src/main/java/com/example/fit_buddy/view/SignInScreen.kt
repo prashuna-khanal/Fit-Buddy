@@ -2,20 +2,24 @@ package com.example.fit_buddy.view
 
 import android.content.Intent
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -29,100 +33,112 @@ import com.example.fit_buddy.viewmodel.UserViewModel
 
 @Composable
 fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
-    //  user input
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    val context = LocalContext.current
-    //   back
-    var isBackPressed by remember { mutableStateOf(false) }
-    val primaryPurple = Color(0xFF6200EE)
+    var passVisible by remember { mutableStateOf(false) }
 
+    val context = LocalContext.current
+    val primaryPurple = Color(0xFF7949D0)
+    val bgColor = Color(0xFFF7F5FB)
+    val placeholderGrey = Color(0xFF8A8989)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(bgColor)
+            .verticalScroll(rememberScrollState())
     ) {
-//        wavy
+
+        /* ---------------- IMAGE SECTION ---------------- */
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.35f)
-                .background(
-                    color = Color(0xFFC9B6E4),
-                    shape = RoundedCornerShape(bottomStart = 80.dp, bottomEnd = 80.dp)
-                ),
-            contentAlignment = Alignment.Center
+                .height(320.dp)
         ) {
-            IconButton(onClick = {isBackPressed= true
-                navController.popBackStack()
-            },
-                modifier = Modifier.align(Alignment.TopStart)
-                    .padding(top = 40.dp, start = 16.dp)
-                    .background(
-                        if (isBackPressed) Color(0xFFB19CD9) else Color.Transparent,
-                        shape = CircleShape
-                    )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription =null,
-                    tint = Color.White
-                )
-            }
-//           if we want logo guys
 
+            Image(
+                painter = painterResource(id = R.drawable.signin),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        scaleX = 1.28f   // ✅ zoom
+                        scaleY = 1.28f
+                        translationY = -35f // ✅ remove empty background
+                    }
+            )
+
+            // subtle bottom fade
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                bgColor.copy(alpha = 0.35f)
+                            ),
+                            startY = 320f
+                        )
+                    )
+            )
         }
 
-        // form fields
+        /* ---------------- CONTENT ---------------- */
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(30.dp)
+                .padding(horizontal = 22.dp)
+                .offset(y = (-28).dp) // ✅ reduced gap
         ) {
 
             Text(
-                text = "Sign in",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
+                text = "Welcome back",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.ExtraBold,
                 color = Color.Black
             )
+            Spacer(modifier = Modifier.height(5.dp))
+            Text(
+                text = "Train smart. Stay consistent.",
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(26.dp))
 
-            // email field
-            Text("Email", color = Color.Gray, fontSize = 14.sp)
+            // EMAIL
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("demo@email.com") },
-                leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = Color(0xFF6200EE)) },
+                placeholder = { Text("demo@gmail.com", color = placeholderGrey) },
+                leadingIcon = {
+                    Icon(Icons.Default.Email, null, tint = primaryPurple)
+                },
+                shape = RoundedCornerShape(18.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = Color.LightGray,
-                    focusedBorderColor = Color(0xFF6200EE)
+                    focusedBorderColor = primaryPurple,
+                    unfocusedBorderColor = Color.LightGray
                 )
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
-            // password field
-            var password by remember { mutableStateOf("") }
-            var passVisible by remember { mutableStateOf(false) }
-
-            CustomLabel("Password")
-
+            // PASSWORD
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-
-                visualTransformation = if (passVisible)
-                    VisualTransformation.None
-                else
-                    PasswordVisualTransformation(),
-
+                placeholder = { Text("••••••••", color = placeholderGrey) },
+                visualTransformation =
+                    if (passVisible) VisualTransformation.None
+                    else PasswordVisualTransformation(),
+                leadingIcon = {
+                    Icon(Icons.Default.Lock, null, tint = primaryPurple)
+                },
                 trailingIcon = {
                     IconButton(onClick = { passVisible = !passVisible }) {
                         Icon(
@@ -132,73 +148,76 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
                                 else
                                     R.drawable.outline_visibility_off_24
                             ),
-                            contentDescription = "Toggle password",
+                            contentDescription = null,
                             tint = primaryPurple
                         )
                     }
-                }
+                },
+                shape = RoundedCornerShape(18.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = primaryPurple,
+                    unfocusedBorderColor = Color.LightGray
+                )
             )
 
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(checked = true, onCheckedChange = {})
-                    Text("Remember Me", fontSize = 12.sp)
-                }
-                Text(
-                    text = "Forgot Password?",
-                    fontSize = 12.sp,
-                    color = Color(0xFF6200EE),
-                    modifier = Modifier.clickable {
-                        navController.navigate("forgot")
-                    }
-                )
-            }
+            Text(
+                text = "Forgot password?",
+                fontSize = 13.sp,
+                color = primaryPurple,
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(top = 10.dp)
+                    .clickable { navController.navigate("forgot") }
+            )
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(26.dp))
 
-            // button
             Button(
                 onClick = {
-                    // calls the ViewModel function we built earlier
                     viewModel.login(email, password) { success, message ->
                         if (success) {
                             Toast.makeText(context, "Welcome back!", Toast.LENGTH_SHORT).show()
-//                            starting activity
-                            val intent = Intent(context, WorkoutActivity::class.java)
-                            context.startActivity(intent)
-//                            close login
+                            context.startActivity(
+                                Intent(context, WorkoutActivity::class.java)
+                            )
                             (context as? android.app.Activity)?.finish()
-                            // navigate to dashboard and clear back screens
-
                         } else {
                             Toast.makeText(context, message, Toast.LENGTH_LONG).show()
                         }
                     }
                 },
-                modifier = Modifier.fillMaxWidth().height(55.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB19CD9))
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = primaryPurple)
             ) {
-                Text("Login", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            }
-
-            // if no acc we will go to singup
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text("Don't have an Account? ", color = Color.Gray)
                 Text(
-                    text = "Sign up",
-                    color = Color(0xFF6200EE),
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { navController.navigate("signup") }
+                    "LOGIN",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = 1.1.sp
                 )
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text("New here? ", color = Color.Gray)
+                Text(
+                    "Create account",
+                    color = primaryPurple,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clickable {
+                        navController.navigate("signup")
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
