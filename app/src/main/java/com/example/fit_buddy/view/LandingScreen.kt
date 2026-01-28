@@ -49,44 +49,50 @@ fun LandingScreen(navController: NavController, viewModel: UserViewModel) {
         containerColor = Color.Transparent,
         bottomBar = { WhyChooseFitBuddySlider() }
     ) { padding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(gradientBackground)
                 .padding(padding)
-                .padding(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
         ) {
 
-            // Title
-            Text(
-                text = "Get Started",
-                style = TextStyle(
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = primaryPurple
-                ),
-                modifier = Modifier.padding(top = 40.dp, bottom = 30.dp)
-            )
-
-            // Grid Cards
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.fillMaxWidth()
+            // Centered Column
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center // ✅ center cards vertically
             ) {
-                item { AuthCard("Sign In", "Already have an account? Sign in to continue", Icons.Default.Person) { navController.navigate("signin") } }
-                item { AuthCard("Sign Up", "New here? Create your account today", Icons.Default.Add) { navController.navigate("signup") } }
-                item(span = { GridItemSpan(2) }) { AuthCard("Reset Password", "Forgot your password? Reset it here", Icons.Default.Refresh) { navController.navigate("reset") } }
-            }
 
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.padding(top = 20.dp),
-                    color = primaryPurple
+                Text(
+                    text = "Get Started",
+                    style = TextStyle(
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = primaryPurple
+                    ),
+                    modifier = Modifier.padding(bottom = 30.dp)
                 )
+
+                // Grid Cards
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    item { AuthCard("Sign In", "Already have an account? Sign in to continue", Icons.Default.Person) { navController.navigate("signin") } }
+                    item { AuthCard("Sign Up", "New here? Create your account today", Icons.Default.Add) { navController.navigate("signup") } }
+                    item(span = { GridItemSpan(2) }) { AuthCard("Reset Password", "Forgot your password? Reset it here", Icons.Default.Refresh) { navController.navigate("reset") } }
+                }
+
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.padding(top = 20.dp),
+                        color = primaryPurple
+                    )
+                }
             }
         }
     }
