@@ -30,7 +30,7 @@ val lavender50 = Color(0xFFFAF8FF)
 val lavender100 = Color(0xFFF3EFFF)
 val lavender300 = Color(0xFFD4C5F0)
 val lavender400 = Color(0xFFB8A0E8)
-val lavender500 = Color(0xFF9B7DD9)
+val lavender500 = Color(0xFF8461C9)
 val lavender600 = Color(0xFF8461C9)
 
 // Accent Rose

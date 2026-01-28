@@ -79,16 +79,16 @@ fun LandingScreen(navController: NavController, viewModel: UserViewModel) {
                 item { AuthCard("Sign In", "Already have an account? Sign in to continue", Icons.Default.Person) { navController.navigate("signin") } }
                 item { AuthCard("Sign Up", "New here? Create your account today", Icons.Default.Add) { navController.navigate("signup") } }
 
-                }
+            }
 //                item { AuthCard("OTP", "Verify your account with OTP", Icons.Default.CheckCircle) { navController.navigate("otp") } }
-            }
+        }
 
-            // loading default for now
-            if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.padding(top = 20.dp), color = Color(0xFF6200EE))
-            }
+        // loading default for now
+        if (isLoading) {
+            CircularProgressIndicator(modifier = Modifier.padding(top = 20.dp), color = Color(0xFF6200EE))
         }
     }
+}
 
 
 @Composable
