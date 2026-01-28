@@ -82,9 +82,27 @@ fun LandingScreen(navController: NavController, viewModel: UserViewModel) {
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    item { AuthCard("Sign In", "Already have an account? Sign in to continue", Icons.Default.Person) { navController.navigate("signin") } }
-                    item { AuthCard("Sign Up", "New here? Create your account today", Icons.Default.Add) { navController.navigate("signup") } }
-                    item(span = { GridItemSpan(2) }) { AuthCard("Reset Password", "Forgot your password? Reset it here", Icons.Default.Refresh) { navController.navigate("reset") } }
+                    item {
+                        AuthCard(
+                            "Sign In",
+                            "Already have an account? Sign in to continue",
+                            Icons.Default.Person
+                        ) { navController.navigate("signin") }
+                    }
+                    item {
+                        AuthCard(
+                            "Sign Up",
+                            "New here? Create your account today",
+                            Icons.Default.Add
+                        ) { navController.navigate("signup") }
+                    }
+                    item(span = { GridItemSpan(2) }) {
+                        AuthCard(
+                            "Reset Password",
+                            "Forgot your password? Reset it here",
+                            Icons.Default.Refresh
+                        ) { navController.navigate("reset") }
+                    }
                 }
 
                 if (isLoading) {
@@ -95,7 +113,7 @@ fun LandingScreen(navController: NavController, viewModel: UserViewModel) {
                 }
             }
         }
-    }
+    }}
 
 
 @Composable
