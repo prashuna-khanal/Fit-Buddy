@@ -116,6 +116,7 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
                     focusedBorderColor = Color(0xFF6200EE)
                 )
             )
+            var rememberMe by remember { mutableStateOf(false) }
 
             Row(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
