@@ -182,18 +182,26 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
             // 🚀 Login Button
             Button(
                 onClick = {
-                    viewModel.login(email, password) { success, message ->
-                        if (success) {
-                            Toast.makeText(context, "Welcome back!", Toast.LENGTH_SHORT).show()
-                            context.startActivity(
-                                Intent(context, WorkoutActivity::class.java)
-                            )
-                            (context as? android.app.Activity)?.finish()
-                        } else {
-                            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                        if (email.isBlank() || password.isBlank()) {
+                            Toast.makeText(
+                                context,
+                                "Please fill in all fields",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            return@Button
                         }
-                    }
-                },
+
+                        // only runs if fields are filled
+                        viewModel.login(email, password) { success, message ->
+                            if (success) {
+                                Toast.makeText(context, "Welcome back!", Toast.LENGTH_SHORT).show()
+                                context.startActivity(Intent(context, WorkoutActivity::class.java))
+                                (context as? android.app.Activity)?.finish()
+                            } else {
+                                Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
