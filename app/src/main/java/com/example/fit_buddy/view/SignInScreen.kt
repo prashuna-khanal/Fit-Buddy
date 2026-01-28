@@ -121,6 +121,14 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
 
                 placeholder = { Text("Enter your password") },
 
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Lock,
+                        contentDescription = null,
+                        tint = Color(0xFF6200EE)
+                    )
+                },
+
                 visualTransformation = if (passVisible)
                     VisualTransformation.None
                 else
@@ -141,6 +149,7 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
                     }
                 }
             )
+
 
 
 
