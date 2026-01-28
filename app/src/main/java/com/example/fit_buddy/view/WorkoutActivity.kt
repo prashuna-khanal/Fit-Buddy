@@ -472,6 +472,7 @@ fun StatCard(title: String, value: String, icon: Int, gradient: Brush) {
 
 @Composable
 fun AICoachCard() {
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -517,7 +518,11 @@ fun AICoachCard() {
 
         Spacer(Modifier.height(20.dp))
         Button(
-            onClick = {},
+            onClick = {
+                context.startActivity(
+                    Intent(context, ExerciseActivity::class.java)
+                )
+            },
             colors = ButtonDefaults.buttonColors(containerColor = textPrimary),
             shape = RoundedCornerShape(12.dp)
         ) {
