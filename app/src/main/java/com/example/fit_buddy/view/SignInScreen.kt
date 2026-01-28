@@ -103,42 +103,47 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
             Spacer(modifier = Modifier.height(16.dp))
 
             // password field
-            var password by remember { mutableStateOf("") }
-            var passwordVisible by remember { mutableStateOf(false) }
-
             Text("Password", color = Color.Gray, fontSize = 14.sp)
-
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("enter your password") },
+                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = Color(0xFF6200EE)) },
+                visualTransformation = PasswordVisualTransformation(),
+                var password by remember { mutableStateOf("") }
+            var passVisible by remember { mutableStateOf(false) }
 
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.Lock,
-                        contentDescription = null,
-                        tint = Color(0xFF6200EE)
-                    )
-                },
+            CustomLabel("Password")
 
-                trailingIcon = {
-                    val image = if (passwordVisible)
-                        Icons.Default.Visibility
-                    else
-                        Icons.Default.VisibilityOff
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
 
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(image, contentDescription = "Toggle password visibility")
-                    }
-                },
-
-                visualTransformation = if (passwordVisible)
+                visualTransformation = if (passVisible)
                     VisualTransformation.None
                 else
                     PasswordVisualTransformation(),
 
-                colors = OutlinedTextFieldDefaults.colors(
+                trailingIcon = {
+                    IconButton(onClick = { passVisible = !passVisible }) {
+                        Icon(
+                            painter = painterResource(
+                                if (passVisible)
+                                    R.drawable.baseline_visibility_24
+                                else
+                                    R.drawable.outline_visibility_off_24
+                            ),
+                            contentDescription = "Toggle password",
+                            tint = primaryPurple
+                        )
+                    }
+                }
+            )
+
+            colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Color.LightGray,
                     focusedBorderColor = Color(0xFF6200EE)
                 )
