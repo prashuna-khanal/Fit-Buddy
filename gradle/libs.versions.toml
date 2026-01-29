@@ -19,6 +19,8 @@ runtimeLivedata = "1.10.0"
 ui = "1.10.1"
 #this one for unit testing
 coreKtxVersion = "1.7.0"
+#for expresso
+
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
