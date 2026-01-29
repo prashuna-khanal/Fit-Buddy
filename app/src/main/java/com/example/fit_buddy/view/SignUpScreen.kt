@@ -115,7 +115,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
             OutlinedTextField(
                 value = fullName,
                 onValueChange = { fullName = it },
-                modifier = Modifier.fillMaxWidth().testTag("fullname"),
+                modifier = Modifier.fillMaxWidth().testTag("fullName"),
                 placeholder = { Text("Full Name") },
                 shape = RoundedCornerShape(12.dp),
                 leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = primaryPurple) }
@@ -127,7 +127,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                modifier = Modifier.fillMaxWidth().testTag("Signup_email"),
+                modifier = Modifier.fillMaxWidth().testTag("email"),
                 placeholder = { Text("demo@email.com") },
                 shape = RoundedCornerShape(12.dp),
                 leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = primaryPurple) }
@@ -160,7 +160,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
-                modifier = Modifier.fillMaxWidth().testTag("confirmP"),
+                modifier = Modifier.fillMaxWidth().testTag("confirmPassword"),
                 shape = RoundedCornerShape(12.dp),
                 visualTransformation = if (confirmPassVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
@@ -191,7 +191,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
 
             OutlinedCard(
                 onClick = { datePickerDialog.show() },
-                modifier = Modifier.fillMaxWidth().testTag("dob_field"),
+                modifier = Modifier.fillMaxWidth().testTag("dob"),
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.outlinedCardColors(containerColor = lightLavenderBg)
             ) {
@@ -237,7 +237,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
             Box {
                 OutlinedCard(
                     onClick = { isWeightMenuExpanded = true },
-                    modifier = Modifier.fillMaxWidth().testTag("weight_field"),
+                    modifier = Modifier.fillMaxWidth().testTag("weight"),
 
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.outlinedCardColors(containerColor = lightLavenderBg)
@@ -333,8 +333,9 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
                 Checkbox(
                     checked = isTermsAccepted,
                     onCheckedChange = { isTermsAccepted = it },
-                    colors = CheckboxDefaults.colors(primaryPurple),
-                    modifier = Modifier.testTag("terms_checkbox"),
+                    modifier = Modifier.testTag("terms"),
+                    colors = CheckboxDefaults.colors(primaryPurple)
+
 
                     )
                 Text("I agree to terms and conditions", fontSize = 14.sp)
@@ -396,7 +397,6 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
                                     scheduleDailyReminder(context)
 
                                     FirebaseAuth.getInstance().signOut()
-
                                     Toast.makeText(
                                         context,
                                         "Account created! Please sign in.",
@@ -414,8 +414,8 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp).testTag("signup_btn")
-                    .align(Alignment.CenterHorizontally),
+                    .height(56.dp)
+                    .align(Alignment.CenterHorizontally).testTag("register"),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(buttonLavender)
             ) {
