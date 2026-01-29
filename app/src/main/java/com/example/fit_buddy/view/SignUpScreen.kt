@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -64,7 +65,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxSize().testTag("signup_screen")
             .background(Color.White)
             .verticalScroll(rememberScrollState())
     ) {
@@ -85,7 +86,8 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
                     navController.popBackStack()
                 },
                 modifier = Modifier
-                    .align(Alignment.TopStart)
+                    .align(Alignment.TopStart).testTag("signup_back")
+
                     .padding(top = 40.dp, start = 16.dp)
                     .background(
                         if (isBackPressed) buttonLavender else Color.Transparent,
@@ -113,7 +115,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
             OutlinedTextField(
                 value = fullName,
                 onValueChange = { fullName = it },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("fullname"),
                 placeholder = { Text("Full Name") },
                 shape = RoundedCornerShape(12.dp),
                 leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = primaryPurple) }
@@ -125,7 +127,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("Signup_email"),
                 placeholder = { Text("demo@email.com") },
                 shape = RoundedCornerShape(12.dp),
                 leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = primaryPurple) }
@@ -137,7 +139,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("password"),
                 shape = RoundedCornerShape(12.dp),
                 visualTransformation = if (passVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
@@ -158,7 +160,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("confirmP"),
                 shape = RoundedCornerShape(12.dp),
                 visualTransformation = if (confirmPassVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
@@ -189,7 +191,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
 
             OutlinedCard(
                 onClick = { datePickerDialog.show() },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("dob_field"),
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.outlinedCardColors(containerColor = lightLavenderBg)
             ) {
@@ -213,14 +215,18 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
                 RadioButton(
                     selected = gender == "Male",
                     onClick = { gender = "Male" },
-                    colors = RadioButtonDefaults.colors(primaryPurple)
+                    colors = RadioButtonDefaults.colors(primaryPurple),
+                    modifier = Modifier.testTag("gender_male")
+
                 )
                 Text("Male", modifier = Modifier.padding(end = 16.dp))
 
                 RadioButton(
                     selected = gender == "Female",
                     onClick = { gender = "Female" },
-                    colors = RadioButtonDefaults.colors(primaryPurple)
+                    colors = RadioButtonDefaults.colors(primaryPurple),
+                    modifier = Modifier.testTag("gender_female")
+
                 )
                 Text("Female")
             }
@@ -231,9 +237,11 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
             Box {
                 OutlinedCard(
                     onClick = { isWeightMenuExpanded = true },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().testTag("weight_field"),
+
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.outlinedCardColors(containerColor = lightLavenderBg)
+
                 ) {
                     Row(
                         modifier = Modifier
@@ -250,6 +258,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
                     expanded = isWeightMenuExpanded,
                     onDismissRequest = { isWeightMenuExpanded = false },
                     modifier = Modifier.fillMaxWidth(0.8f).heightIn(max = 300.dp)
+
                 ) {
                     (30..150).forEach { w ->
                         DropdownMenuItem(
@@ -257,7 +266,8 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
                             onClick = {
                                 weight = w.toString()
                                 isWeightMenuExpanded = false
-                            }
+                            },
+                            modifier = Modifier.testTag("weight_$w")
                         )
                     }
                 }
@@ -298,7 +308,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
                         else -> null
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("height"),
                 shape = RoundedCornerShape(12.dp),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Decimal
@@ -323,8 +333,10 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
                 Checkbox(
                     checked = isTermsAccepted,
                     onCheckedChange = { isTermsAccepted = it },
-                    colors = CheckboxDefaults.colors(primaryPurple)
-                )
+                    colors = CheckboxDefaults.colors(primaryPurple),
+                    modifier = Modifier.testTag("terms_checkbox"),
+
+                    )
                 Text("I agree to terms and conditions", fontSize = 14.sp)
             }
 
@@ -402,7 +414,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
+                    .height(56.dp).testTag("signup_btn")
                     .align(Alignment.CenterHorizontally),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(buttonLavender)
