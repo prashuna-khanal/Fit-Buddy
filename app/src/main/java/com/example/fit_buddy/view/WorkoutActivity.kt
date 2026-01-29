@@ -287,7 +287,7 @@ fun WorkoutScreen(navController: NavController, userViewModel: UserViewModel) {
                 2 -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         if (cameraPermissionGranted && viewModel != null) {
-                            ExerciseActivityScreen(userViewModel)
+                            ExerciseActivityScreen(userViewModel,onBackOverride = { selectedIndex = 0 } )
                         } else {
                             Text("Camera permission required", color = Color.Gray)
                         }
@@ -389,7 +389,7 @@ fun HeaderSection(
         ) {
             Column {
                 Text(text = greeting, color = textMuted, fontSize = 18.sp, fontWeight = FontWeight.Medium)
-                Text(text = userName, color = textPrimary, fontSize = 29.sp, fontWeight = FontWeight.Bold)
+                Text(text = userName, color = textPrimary, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                 Text(text = subtitle, color = textSecondary, fontSize = 16.sp)
             }
 
@@ -422,9 +422,13 @@ fun HeaderSection(
 
             StatCard("Today", stat2, R.drawable.heart,
                 Brush.verticalGradient(listOf(lavender50, lavender100)))
-
-            StatCard("Status", stat3, R.drawable.octicon_goal_16,
-                Brush.verticalGradient(listOf(mint50, mint100)))
+            StatCard(
+                "Status",
+                stat3,
+                R.drawable.octicon_goal_16,
+                Brush.verticalGradient(listOf(mint50, mint100)),
+                valueSize = 16.sp
+            )
         }
     }
 }
@@ -440,7 +444,7 @@ private fun getGreeting(): String {
 }
 
 @Composable
-fun StatCard(title: String, value: String, icon: Int, gradient: Brush) {
+fun StatCard(title: String, value: String, icon: Int, gradient: Brush,valueSize: TextUnit =20.sp) {
     Column(
         modifier = Modifier
             .width(115.dp)
@@ -465,7 +469,7 @@ fun StatCard(title: String, value: String, icon: Int, gradient: Brush) {
         }
 
         Spacer(Modifier.height(5.dp))
-        Text(value, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = textPrimary)
+        Text(value, fontWeight = FontWeight.Bold, fontSize = valueSize, color = textPrimary)
         Text(title, fontSize = 14.sp, color = textSecondary)
     }
 }
