@@ -97,7 +97,9 @@ Fit-Buddy is a smart fitness application that combines **AI pose detection**, **
 ## 📂 Project Architecture
 MVVM with Repository
 
+I updates with state
+
 View → ViewModel → Repository → Model
- ↑__________________________________↓
-          UI updates with state
+
+ ↑_________________________________________↓
 
