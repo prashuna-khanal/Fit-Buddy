@@ -9,8 +9,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -50,7 +55,10 @@ class ExerciseActivity : ComponentActivity() {
 }
 
 @Composable
-fun ExerciseActivityScreen(userViewModel: UserViewModel) {
+fun ExerciseActivityScreen(userViewModel: UserViewModel,
+                           onBackOverride: (() -> Unit)? =null
+
+                           ) {
     val context = LocalContext.current
     val poseRepo = remember { PoseRepo(context) }
     val poseViewModel: PoseViewModel = viewModel { PoseViewModel(poseRepo) }
@@ -114,10 +122,27 @@ fun ExerciseActivityScreen(userViewModel: UserViewModel) {
             containerColor = Color.White
         )
     }
+    Box(modifier = Modifier.fillMaxSize()){
+
+    }
 
     if (showAIScreen) {
         Box(Modifier.fillMaxSize()) {
             AIScreen(poseViewModel)
+//            back button
+            IconButton(onClick = {
+                showAIScreen=false
+                isTimerRunning=false
+            },
+                modifier = Modifier
+                    .padding(top = 50.dp, start = 20.dp)
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .align(Alignment.TopStart)
+            ) {
+                Icon(Icons.Default.Close, "Exit", tint = Color.White)
+            }
 
             val statusText = if (!isTimerRunning) "Position your body to start!" else "Active: %02d:%02d"
             val statusColor = if (!isTimerRunning) Color.Black else Color.Green
@@ -160,6 +185,35 @@ fun ExerciseActivityScreen(userViewModel: UserViewModel) {
                 .verticalScroll(rememberScrollState())
                 .padding(top = 18.dp)
         ) {
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(width = 36.dp, height = 32.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xFFF3F0FF))
+                        .clickable {
+                            if (onBackOverride != null) {
+                                onBackOverride()
+                            } else {
+                                val activity = (context as? ComponentActivity)
+                                activity?.onBackPressedDispatcher?.onBackPressed()
+                            }
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Back to Workouts",
+                        tint = textPrimary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+                Spacer(Modifier.width(16.dp))
+
+            }
             Text("Exercises", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = textPrimary, modifier = Modifier.padding(start = 20.dp, bottom = 10.dp))
 
             val exercises = listOf(
