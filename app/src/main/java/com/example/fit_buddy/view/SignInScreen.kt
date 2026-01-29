@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -113,7 +114,7 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("email"),
                 placeholder = { Text("demo@gmail.com", color = placeholderGrey) },
                 leadingIcon = {
                     Icon(Icons.Default.Email, null, tint = primaryPurple)
@@ -131,7 +132,7 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("password"),
                 placeholder = { Text("••••••••", color = placeholderGrey) },
                 visualTransformation =
                     if (passVisible) VisualTransformation.None
@@ -166,8 +167,8 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
                 color = primaryPurple,
                 modifier = Modifier
                     .align(Alignment.End)
-                    .padding(top = 10.dp)
-                    .clickable { navController.navigate("forgot") }
+                    .padding(top = 10.dp).testTag("Forgot password?")
+                    .clickable { navController.navigate("forgot")}
             )
 
             Spacer(modifier = Modifier.height(26.dp))
@@ -188,7 +189,7 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(56.dp).testTag("login"),
                 shape = RoundedCornerShape(20.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = primaryPurple)
             ) {

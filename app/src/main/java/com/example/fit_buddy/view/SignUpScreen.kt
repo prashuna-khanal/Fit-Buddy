@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -135,7 +136,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
             OutlinedTextField(
                 value = fullName,
                 onValueChange = { fullName = it },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("fullName"),
                 placeholder = { Text("Full Name") },
                 shape = RoundedCornerShape(18.dp),
                 leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = primaryPurple) },
@@ -151,7 +152,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("email"),
                 placeholder = { Text("demo@email.com") },
                 shape = RoundedCornerShape(18.dp),
                 leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = primaryPurple) },
@@ -167,7 +168,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("password"),
                 shape = RoundedCornerShape(18.dp),
                 visualTransformation = if (passVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
@@ -192,7 +193,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("confirmPassword"),
                 shape = RoundedCornerShape(18.dp),
                 visualTransformation = if (confirmPassVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
@@ -226,7 +227,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
             CustomLabel("Date of Birth")
             OutlinedCard(
                 onClick = { datePickerDialog.show() },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("dob"),
                 shape = RoundedCornerShape(18.dp),
                 colors = CardDefaults.outlinedCardColors(containerColor = lightLavenderBg)
             ) {
@@ -260,7 +261,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
             Box {
                 OutlinedCard(
                     onClick = { isWeightMenuExpanded = true },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().testTag("weight"),
                     shape = RoundedCornerShape(18.dp),
                     colors = CardDefaults.outlinedCardColors(containerColor = lightLavenderBg)
                 ) {
@@ -311,7 +312,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
                         else -> null
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("height"),
                 shape = RoundedCornerShape(18.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 singleLine = true,
@@ -333,6 +334,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
                 Checkbox(
                     checked = isTermsAccepted,
                     onCheckedChange = { isTermsAccepted = it },
+                    modifier = Modifier.testTag("terms"),
                     colors = CheckboxDefaults.colors(primaryPurple)
                 )
                 Text("I agree to terms and conditions", fontSize = 14.sp)
@@ -379,7 +381,7 @@ fun SignUpScreen(navController: NavController, viewModel: UserViewModel) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
-                    .align(Alignment.CenterHorizontally),
+                    .align(Alignment.CenterHorizontally).testTag("register"),
                 shape = RoundedCornerShape(20.dp),
                 colors = ButtonDefaults.buttonColors(buttonLavender)
             ) {
