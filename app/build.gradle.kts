@@ -52,6 +52,7 @@ dependencies {
 
     implementation("com.cloudinary:cloudinary-android:2.1.0")
     implementation(libs.androidx.ui)
+    implementation(libs.core.ktx)
     val bom = platform("com.google.firebase:firebase-bom:34.7.0")
     implementation(bom)
 
@@ -102,10 +103,16 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation("androidx.test.espresso:espresso-intents:3.5.1")
     //unit testing
-    androidTestImplementation("org.mockito:mockito-android:5.11.0")
-    androidTestImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
-    androidTestImplementation("androidx.test:core:1.5.0")
-    testImplementation(kotlin("test"))
+//    androidTestImplementation("org.mockito:mockito-android:5.11.0")
+//    androidTestImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
+//    androidTestImplementation("androidx.test:core:1.5.0")
+//    testImplementation(kotlin("test"))
+//    testImplementation("androidx.arch.core:core-testing:2.2.0")
+
+    testImplementation("org.mockito:mockito-core:5.11.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
+
+    testImplementation("org.robolectric:robolectric:4.10.3")
     testImplementation("androidx.arch.core:core-testing:2.2.0")
 
 
