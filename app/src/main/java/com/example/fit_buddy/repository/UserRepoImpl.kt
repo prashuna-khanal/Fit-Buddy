@@ -211,7 +211,7 @@ class UserRepoImpl : UserRepo {
                     callback(false, task.exception?.message ?: "Failed to send reset link")
                 }
             }
-}
+    }
 
 
 

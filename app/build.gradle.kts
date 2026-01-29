@@ -51,6 +51,7 @@ dependencies {
 //    for data storing cloudinary
 
     implementation("com.cloudinary:cloudinary-android:2.1.0")
+    implementation(libs.androidx.ui)
     val bom = platform("com.google.firebase:firebase-bom:34.7.0")
     implementation(bom)
 
@@ -94,13 +95,17 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("androidx.work:work-runtime-ktx:2.9.0")
     implementation("androidx.core:core-ktx:1.12.0")
-//    instrumented testing
+
+    //Dependencies for instrumented testing
     androidTestImplementation("androidx.test:runner:1.2.0")
     androidTestImplementation("androidx.test:rules:1.2.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation("androidx.test.espresso:espresso-intents:3.5.1")
-//    androidTestImplementation("androidx.navigation:navigation-testing:2.8.5")
-//    testImplementation(kotlin("test"))
-
+    //unit testing
+    androidTestImplementation("org.mockito:mockito-android:5.11.0")
+    androidTestImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
+    androidTestImplementation("androidx.test:core:1.5.0")
+    testImplementation(kotlin("test"))
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
 
 }

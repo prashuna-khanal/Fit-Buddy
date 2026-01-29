@@ -13,10 +13,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.fit_buddy.repository.UserRepoImpl
 import com.example.fit_buddy.viewmodel.UserViewModel
-import com.example.fit_buddy.viewmodel.UserViewModelFactory
+
 import com.google.firebase.auth.FirebaseAuth
 import androidx.navigation.NavController
 import com.example.fit_buddy.viewmodel.NotificationViewModel
+import com.example.fit_buddy.viewmodel.UserViewModelFactory
 
 class LandingActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,7 +64,7 @@ class LandingActivity : ComponentActivity() {
                         viewModel = userViewModel)
                 }
 
-                }
+            }
 
 
         }
